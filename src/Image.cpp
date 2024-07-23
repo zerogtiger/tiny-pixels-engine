@@ -1,9 +1,10 @@
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#define BYTE_BOUND(value) fmax(fmin(value, 255), 0)
+#define BYTE_BOUND(value) (value > 255 ? 255 : (value < 0 ? 0 : value))
 #define STEG_HEADER_SIZE sizeof(uint32_t) * 8
 
 #include "Image.h"
@@ -286,6 +287,413 @@ Image& Image::flip_y() {
             memcpy(tmp, px1, channels);
             memcpy(px1, px2, channels);
             memcpy(px2, tmp, channels);
+        }
+    }
+    return *this;
+}
+
+Image& Image::overlay(const Image& src, int x, int y) {
+    uint8_t *srcPx, *dstPx;
+    for (int sy = 0; sy < src.h; ++sy) {
+        if (sy + y < 0) {
+            continue;
+        } else if (sy + y >= h) {
+            break;
+        }
+        for (int sx = 0; sx < src.w; ++sx) {
+            if (sx + x < 0) {
+                continue;
+            } else if (sx + x >= w) {
+                break;
+            }
+            srcPx = &src.data[(sx + sy * src.w) * src.channels];
+            dstPx = &data[(sx + x + (sy + y) * w) * channels];
+
+            float srcAlpha = src.channels < 4 ? 1 : srcPx[3] / 255.f;
+            float dstAlpha = src.channels < 4 ? 1 : dstPx[3] / 255.f;
+
+            if (srcAlpha > .99 && dstAlpha > .99) {
+                if (src.channels >= channels)
+                    memcpy(dstPx, srcPx, channels); // might have different channels
+                else
+                    memset(dstPx, srcPx[0], channels); // requires fix for src with k>=2 channels and dest with n>k
+            } else {
+                float outAlpha = srcAlpha + dstAlpha * (1 - srcAlpha);
+                if (outAlpha < .01) {
+                    memset(dstPx, 0, channels);
+                } else {
+                    for (int chnl = 0; chnl < channels; chnl++) {
+                        dstPx[chnl] = (uint8_t)BYTE_BOUND((srcPx[chnl] / 255.f * srcAlpha + dstPx[chnl] / 255.f * dstAlpha * (1 - srcAlpha)) / outAlpha * 255.f);
+                    }
+                    if (channels > 3) {
+                        dstPx[3] = (uint8_t)BYTE_BOUND(outAlpha * 255.f);
+                    }
+                }
+            }
+        }
+    }
+    return *this;
+}
+
+Image& Image::overlay_text(const char* txt, const Font& font, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    size_t len = strlen(txt);
+    SFT_Char c;
+    int32_t dx, dy;
+    uint8_t *dstPx, srcPx, color[4] = {r, g, b, a};
+
+    for (size_t i = 0; i < len; i++) {
+        if (sft_char(&font.sft, txt[i], &c) != 0) {
+            printf("\e[31m[ERROR] Font is missing character '%c'\e[0m\n", txt[i]);
+            continue;
+        }
+        for (uint16_t sy = 0; sy < c.height; sy++) {
+            dy = sy + y + c.y;
+            if (dy < 0)
+                continue;
+            else if (dy >= h)
+                break;
+            for (uint16_t sx = 0; sx < c.width; sx++) {
+                dx = sx + x + c.x;
+                if (dx < 0)
+                    continue;
+                else if (dx >= w)
+                    break;
+                dstPx = &data[(dx + dy * w) * channels];
+                srcPx = c.image[sx + sy * c.width];
+
+                if (srcPx != 0) {
+                    float srcAlpha = (srcPx / 255.f) * (a / 255.f);
+                    float dstAlpha = channels < 4 ? 1 : dstPx[3] / 255.f;
+                    if (srcAlpha > .99 && dstAlpha > .99) {
+                        memcpy(dstPx, color, channels); // might have different channels
+                    } else {
+                        float outAlpha = srcAlpha + dstAlpha * (1 - srcAlpha);
+                        if (outAlpha < .01) {
+                            memset(dstPx, 0, channels);
+                        } else {
+                            for (int chnl = 0; chnl < channels; chnl++) {
+                                dstPx[chnl] = (uint8_t)BYTE_BOUND((color[chnl] / 255.f * srcAlpha + dstPx[chnl] / 255.f * dstAlpha * (1 - srcAlpha)) / outAlpha * 255.f);
+                            }
+                            if (channels > 3) {
+                                dstPx[3] = (uint8_t)BYTE_BOUND(outAlpha * 255.f);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        x += c.advance;
+        free(c.image);
+    }
+    return *this;
+}
+
+Image& Image::crop(uint16_t cx, uint16_t cy, uint16_t cw, uint16_t ch) {
+    size = w * h * channels;
+    uint8_t* croppedImage = new uint8_t[cw * ch * channels];
+
+    memset(croppedImage, 0, size);
+    for (uint16_t y = 0; y < ch; y++) {
+        if (y + cy >= h)
+            break;
+
+        for (uint16_t x = 0; x < cw; x++) {
+            if (x + cx >= w)
+                break;
+            memcpy(&croppedImage[(x + y * cw) * channels], &data[(x + cx + (y + cy) * w) * channels], channels);
+        }
+    }
+
+    w = cw;
+    h = ch;
+    delete data;
+    data = croppedImage;
+    croppedImage = nullptr;
+    return *this;
+}
+
+uint32_t Image::rev(uint32_t n, uint32_t a) {
+    uint8_t max_bits = (uint8_t)ceil(log2(n));
+    uint32_t reversed_a = 0;
+    for (uint8_t i = 0; i < max_bits; i++) {
+        if (a & (1 << i)) {
+            reversed_a |= (1 << (max_bits - 1 - i));
+        }
+    }
+    return reversed_a;
+}
+void Image::bit_rev(uint32_t n, std::complex<double> a[], std::complex<double>* A) {
+    for (uint32_t i = 0; i < n; i++) {
+        A[rev(n, i)] = a[i];
+    }
+}
+
+void Image::fft(uint32_t n, std::complex<double> x[], std::complex<double>* X) {
+    // x in standard order
+    if (x != X) {
+        memcpy(X, x, n * sizeof(std::complex<double>));
+    }
+
+    // Gentleman-Sande butterfly
+    uint32_t sub_probs = 1;
+    uint32_t sub_prob_size = n;
+    uint32_t half;
+    uint32_t i;
+    uint32_t j_begin;
+    uint32_t j_end;
+    uint32_t j;
+    std::complex<double> w_step;
+    std::complex<double> w;
+    std::complex<double> tmp1, tmp2;
+    while (sub_prob_size > 1) {
+        half = sub_prob_size >> 1;
+        w_step = std::complex<double>(cos(-2 * M_PI / sub_prob_size), sin(-2 * M_PI / sub_prob_size));
+        for (i = 0; i < sub_probs; ++i) {
+            j_begin = i * sub_prob_size;
+            j_end = j_begin + half;
+            w = std::complex<double>(1, 0);
+            for (j = j_begin; j < j_end; ++j) {
+                tmp1 = X[j];
+                tmp2 = X[j + half];
+                X[j] = tmp1 + tmp2;
+                X[j + half] = (tmp1 - tmp2) * w;
+                w *= w_step;
+            }
+        }
+        sub_probs <<= 1;
+        sub_prob_size = half;
+    }
+    // X in bit reversed order
+}
+void Image::ifft(uint32_t n, std::complex<double> X[], std::complex<double>* x) {
+    // X in bit reversed order
+    if (X != x) {
+        memcpy(x, X, n * sizeof(std::complex<double>));
+    }
+
+    // Cooley-Tukey butterfly
+    uint32_t sub_probs = n >> 1;
+    uint32_t sub_prob_size;
+    uint32_t half = 1;
+    uint32_t i;
+    uint32_t j_begin;
+    uint32_t j_end;
+    uint32_t j;
+    std::complex<double> w_step;
+    std::complex<double> w;
+    std::complex<double> tmp1, tmp2;
+    while (half < n) {
+        sub_prob_size = half << 1;
+        w_step = std::complex<double>(cos(2 * M_PI / sub_prob_size), sin(2 * M_PI / sub_prob_size));
+        for (i = 0; i < sub_probs; i++) {
+            j_begin = i * sub_prob_size;
+            j_end = j_begin + half;
+            w = std::complex<double>(1, 0);
+            for (j = j_begin; j < j_end; ++j) {
+                tmp1 = x[j];
+                tmp2 = w * x[j + half];
+                x[j] = tmp1 + tmp2;
+                x[j + half] = tmp1 - tmp2;
+                w *= w_step;
+            }
+        }
+        sub_probs >>= 1;
+        half = sub_prob_size;
+    }
+    for (uint32_t i = 0; i < n; ++i) {
+        x[i] /= n;
+    }
+    // x in standard order
+}
+void Image::dft_2D(uint32_t m, uint32_t n, std::complex<double> x[], std::complex<double>* X) {
+    // x in row-major & standard order
+    std::complex<double>* intermediate = new std::complex<double>[m * n];
+
+    // rows
+    for (uint32_t i = 0; i < m; i++) {
+        fft(n, x + i * n, intermediate + i * n);
+    }
+
+    // cols
+    for (uint32_t j = 0; j < n; j++) {
+        for (uint32_t i = 0; i < m; i++) {
+            X[j * m + i] = intermediate[i * n + j];
+        }
+        fft(m, X + j * m, X + j * m);
+    }
+
+    delete[] intermediate;
+    // X in column-major & bit-reversed (int rows then columns)
+}
+void Image::idft_2D(uint32_t m, uint32_t n, std::complex<double> X[], std::complex<double>* x) {
+    // X in column-major & bit-reversed (in rows then columns)
+    std::complex<double>* intermediate = new std::complex<double>[m * n];
+    // cols
+    for (uint32_t j = 0; j < n; ++j) {
+        ifft(m, X + j * m, intermediate + j * m);
+    }
+    // rows
+    for (uint32_t i = 0; i < m; ++i) {
+        for (uint32_t j = 0; j < n; ++j) {
+            x[i * n + j] = intermediate[j * m + i]; // row-major <-- col-major
+        }
+        ifft(n, x + i * n, x + i * n);
+    }
+    delete[] intermediate;
+    // x in row-major & standard order
+}
+
+void Image::pad_kernel(uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, uint32_t pw, uint32_t ph, std::complex<double>* pad_ker) {
+    // padded so center of kernal is at top left
+    for (long i = -((long)cr); i < (long)ker_h - cr; i++) {
+        uint32_t r = (i < 0) ? i + ph : i;
+        for (long j = -((long)cc); j < (long)ker_w - cc; j++) {
+            uint32_t c = (j < 0) ? j + pw : j;
+            pad_ker[r * pw + c] = std::complex<double>(ker[(i + cr) * ker_w + (j + cc)], 0);
+        }
+    }
+}
+void Image::pointwise_product(uint64_t l, std::complex<double> a[], std::complex<double> b[], std::complex<double>* p) {
+    for (uint64_t k = 0; k < l; ++k) {
+        p[k] = a[k] * b[k];
+    }
+}
+
+Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+    // calculate padding
+    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint64_t psize = pw * ph;
+
+    // pad image
+    std::complex<double>* pad_img = new std::complex<double>[psize];
+    for (uint32_t i = 0; i < h; i++) {
+        for (uint32_t j = 0; j < w; j++) {
+            pad_img[i * pw + j] = std::complex<double>(data[(i * w + j) * channels + channel], 0);
+        }
+    }
+
+    // pad kernal
+    std::complex<double>* pad_ker = new std::complex<double>[psize];
+    pad_kernel(ker_w, ker_h, ker, cr, cc, pw, ph, pad_ker);
+
+    // convolution
+    dft_2D(ph, pw, pad_img, pad_img);
+    dft_2D(ph, pw, pad_ker, pad_ker);
+    pointwise_product(psize, pad_img, pad_ker, pad_img);
+    idft_2D(ph, pw, pad_img, pad_img);
+
+    // update pixel data
+    for (uint32_t i = 0; i < h; i++) {
+        for (uint32_t j = 0; j < w; j++) {
+            data[(i * w + j) * channels + channel] = (uint8_t)BYTE_BOUND(round(pad_img[i * pw + j].real()));
+        }
+    }
+
+    return *this;
+}
+Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+    // calculate padding
+    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint64_t psize = pw * ph;
+
+    // pad image
+    std::complex<double>* pad_img = new std::complex<double>[psize];
+    for (uint32_t i = 0; i < h; i++) {
+        uint32_t r = (i < h) ? i : ((i < h + cr ? h - 1 : 0));
+        for (uint32_t j = 0; j < w; j++) {
+            uint32_t c = (j < w) ? j : ((j < w + cc ? w - 1 : 0));
+            pad_img[i * pw + j] = std::complex<double>(data[(r * w + c) * channels + channel], 0);
+        }
+    }
+
+    // pad kernal
+    std::complex<double>* pad_ker = new std::complex<double>[psize];
+    pad_kernel(ker_w, ker_h, ker, cr, cc, pw, ph, pad_ker);
+
+    // convolution
+    dft_2D(ph, pw, pad_img, pad_img);
+    dft_2D(ph, pw, pad_ker, pad_ker);
+    pointwise_product(psize, pad_img, pad_ker, pad_img);
+    idft_2D(ph, pw, pad_img, pad_img);
+
+    // update pixel data
+    for (uint32_t i = 0; i < h; i++) {
+        for (uint32_t j = 0; j < w; j++) {
+            data[(i * w + j) * channels + channel] = BYTE_BOUND((uint8_t)round(pad_img[i * pw + j].real()));
+        }
+    }
+    return *this;
+}
+Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+    // calculate padding
+    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint64_t psize = pw * ph;
+
+    // pad image
+    std::complex<double>* pad_img = new std::complex<double>[psize];
+    for (uint32_t i = 0; i < h; i++) {
+        uint32_t r = (i < h) ? i : (i < h + cr ? i % h : h - ph + i);
+        for (uint32_t j = 0; j < w; j++) {
+            uint32_t c = (j < w) ? j : (j < w + cc ? j % w : w - pw + j);
+            pad_img[i * pw + j] = std::complex<double>(data[(i * w + j) * channels + channel], 0);
+        }
+    }
+
+    // pad kernal
+    std::complex<double>* pad_ker = new std::complex<double>[psize];
+    pad_kernel(ker_w, ker_h, ker, cr, cc, pw, ph, pad_ker);
+
+    // convolution
+    dft_2D(ph, pw, pad_img, pad_img);
+    dft_2D(ph, pw, pad_ker, pad_ker);
+    pointwise_product(psize, pad_img, pad_ker, pad_img);
+    idft_2D(ph, pw, pad_img, pad_img);
+
+    // update pixel data
+    for (uint32_t i = 0; i < h; i++) {
+        for (uint32_t j = 0; j < w; j++) {
+            data[(i * w + j) * channels + channel] = BYTE_BOUND((uint8_t)round(pad_img[i * pw + j].real()));
+        }
+    }
+    return *this;
+}
+Image& Image::convolve_linear(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+    if (ker_w * ker_h > 224) {
+        return fd_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc);
+    } else {
+        return std_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc);
+    }
+}
+Image& Image::convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+    if (ker_w * ker_h > 224) {
+        return fd_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc);
+    } else {
+        return std_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc);
+    }
+}
+Image& Image::convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+    if (ker_w * ker_h > 224) {
+        return fd_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc);
+    } else {
+        return std_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc);
+    }
+}
+Image& Image::brightness(uint8_t channel, double brightness_delta) {
+    for (uint32_t i = 0; i < h; i++) {
+        for (uint32_t j = 0; j < w; j++) {
+            data[(i * w + j) * channels + channel] = (uint8_t)BYTE_BOUND(data[(i * w + j) * channels + channel] - 128 + 128 + brightness_delta);
+        }
+    }
+    return *this;
+}
+Image& Image::contrast(uint8_t channel, double contrast_delta) {
+    double F = 259.0 * (contrast_delta + 255) / (255.0 * (259 - contrast_delta));
+    for (uint32_t i = 0; i < h; i++) {
+        for (uint32_t j = 0; j < w; j++) {
+            data[(i * w + j) * channels + channel] = (uint8_t)BYTE_BOUND(round(F * (data[(i * w + j) * channels + channel] - 128) + 128));
         }
     }
     return *this;
