@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -654,6 +655,7 @@ Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_
         }
     }
 
+    delete[] pad_img;
     return *this;
 }
 
@@ -665,9 +667,9 @@ std::complex<double>* Image::fd_convolve_clamp_to_border_raw(uint8_t channel, ui
 
     // pad image
     std::complex<double>* pad_img = new std::complex<double>[psize];
-    for (uint32_t i = 0; i < h; i++) {
+    for (uint32_t i = 0; i < ph; i++) {
         uint32_t r = (i < h) ? i : ((i < h + cr ? h - 1 : 0));
-        for (uint32_t j = 0; j < w; j++) {
+        for (uint32_t j = 0; j < pw; j++) {
             uint32_t c = (j < w) ? j : ((j < w + cc ? w - 1 : 0));
             pad_img[i * pw + j] = std::complex<double>(data[(r * w + c) * channels + channel], 0);
         }
@@ -682,6 +684,9 @@ std::complex<double>* Image::fd_convolve_clamp_to_border_raw(uint8_t channel, ui
     dft_2D(ph, pw, pad_ker, pad_ker);
     pointwise_product(psize, pad_img, pad_ker, pad_img);
     idft_2D(ph, pw, pad_img, pad_img);
+
+    delete[] pad_ker;
+
     return pad_img;
 }
 
@@ -710,6 +715,7 @@ Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint3
         }
     }
 
+    delete[] pad_img;
     return *this;
 }
 
@@ -721,9 +727,9 @@ std::complex<double>* Image::fd_convolve_cyclic_raw(uint8_t channel, uint32_t ke
 
     // pad image
     std::complex<double>* pad_img = new std::complex<double>[psize];
-    for (uint32_t i = 0; i < h; i++) {
+    for (uint32_t i = 0; i < ph; i++) {
         uint32_t r = (i < h) ? i : (i < h + cr ? i % h : h - ph + i);
-        for (uint32_t j = 0; j < w; j++) {
+        for (uint32_t j = 0; j < pw; j++) {
             uint32_t c = (j < w) ? j : (j < w + cc ? j % w : w - pw + j);
             pad_img[i * pw + j] = std::complex<double>(data[(i * w + j) * channels + channel], 0);
         }
@@ -767,6 +773,8 @@ Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h
             data[(i * w + j) * channels + channel] = BYTE_BOUND((uint8_t)round(pad_img[i * pw + j].real()));
         }
     }
+
+    delete[] pad_img;
     return *this;
 }
 
@@ -855,4 +863,80 @@ Image& Image::shade() {
     }
     return *this;
 }
-Image& Image::edge(double detail, bool gradient) { return *this; }
+Image& Image::edge(bool gradient, double detail_threshold) {
+
+    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + 3 - 1)));
+    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + 3 - 1)));
+
+    double gaussian_blur[] = {1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0};
+    double scharr_x[] = {47, 0, -47, 162, 0, -162, 47, 0, -47};
+    double scharr_y[] = {47, 162, 47, 0, 0, 0, -47, -162, -47};
+    grayscale_avg();
+    convolve_linear(0, 3, 3, gaussian_blur, 1, 1);
+    // Image itmd_y(w, h, 1);
+    // for (uint64_t k = 0; k < w * h; k++) {
+    //     itmd_y.data[k] = data[k * channels];
+    // }
+    Image itmd_y(*this);
+    std::complex<double>* gx = fd_convolve_clamp_to_border_raw(0, 3, 3, scharr_x, 1, 1);
+    std::complex<double>* gy = itmd_y.fd_convolve_clamp_to_border_raw(0, 3, 3, scharr_y, 1, 1);
+
+    // Normalization
+    double* g = new double[w * h];
+    double* theta = new double[w * h];
+    for (uint64_t i = 0; i < h; i++) {
+        for (uint64_t j = 0; j < w; j++) {
+            g[i * w + j] = sqrt(gx[i * pw + j].real() * gx[i * pw + j].real() + gy[i * pw + j].real() * gy[i * pw + j].real());
+            theta[i * w + j] = atan2(gy[i * pw + j].real(), gx[i * pw + j].real());
+        }
+    }
+
+    // make images
+    double mx = -INFINITY, mn = INFINITY;
+    for (uint64_t i = 2; i < h - 2; i++) {
+        for (uint64_t j = 2; j < w - 2; j++) {
+            mx = fmax(mx, g[i * w + j]);
+            mn = fmin(mn, g[i * w + j]);
+        }
+    }
+    double v;
+    for (uint64_t i = 0; i < h; i++) {
+        for (uint64_t j = 0; j < w; j++) {
+            if (mn == mx) {
+                v = 0;
+            } else {
+                v = (g[i * w + j] - mn) / (mx - mn);
+                v = (v < detail_threshold || v > 1 ? 0 : v);
+            }
+            data[(i * w + j) * channels] = (uint8_t)(255 * v);
+        }
+    }
+    if (!gradient && channels >= 3) {
+        for (uint64_t i = 0; i < h; i++) {
+            for (uint64_t j = 0; j < w; j++) {
+                data[(i * w + j) * channels + 1] = data[(i * w + j) * channels + 2] = data[(i * w + j) * channels];
+            }
+        }
+    } else if (gradient) {
+        std::cout << channels << "\n";
+        Color c(0.0, 0.0, 0.0);
+        for (uint64_t i = 0; i < h; i++) {
+            for (uint64_t j = 0; j < w; j++) {
+                double h, s;
+                h = theta[i * w + j] * 180.0 / M_PI + 180.0;
+                v = (g[i * w + j] - mn) / (mx - mn);
+                v = (v < detail_threshold || v > 1 ? 0 : v);
+                c.hsv_to_rgb(h, v, v);
+                data[(i * w + j) * channels] = (uint8_t)BYTE_BOUND(round(c.r));
+                data[(i * w + j) * channels + 1] = (uint8_t)BYTE_BOUND(round(c.g));
+                data[(i * w + j) * channels + 2] = (uint8_t)BYTE_BOUND(round(c.b));
+            }
+        }
+    }
+    delete[] gx;
+    delete[] gy;
+    delete[] g;
+    delete[] theta;
+
+    return *this;
+}

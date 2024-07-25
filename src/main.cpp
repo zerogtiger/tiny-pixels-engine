@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <iostream>
+#include <pthread.h>
 
 void make_random_complex_arr(uint32_t len, std::complex<double>* z) {
     for (uint32_t i = 0; i < len; i++) {
@@ -23,12 +25,6 @@ void matrix_scalar(double* arr, int size, double scalar) {
     }
 }
 
-int main(int argc, char** argv) {
-
-    Image colorful("images/colorful.jpg");
-    colorful.shade_h();
-    colorful.write("images/colorful_shade_h.png");
-}
 
 void test1() {
 
@@ -56,7 +52,7 @@ void test1() {
     double scharr_x[] = {47, 0, -47, 162, 0, -162, 47, 0, -47};
     double scharr_y[] = {47, 162, 47, 0, 0, 0, -47, -162, -47};
     blur_test_x.fd_convolve_clamp_to_border(0, 3, 3, scharr_x, 1, 1, false);
-    blur_test_y.fd_convolve_clamp_to_border(0, 3, 3, scharr_y, 1, 1, true);
+    blur_test_y.fd_convolve_clamp_to_zero(0, 3, 3, scharr_y, 1, 1, true);
     blur_test_x.write("images/blur_test_x.png");
     blur_test_y.write("images/blur_test_y.png");
 
@@ -97,38 +93,12 @@ void test1() {
         }
         s = l = v;
 
-        // hsl -> rgb
-        double c = (1 - abs(2 * l - 1)) * s;
-        double x = c * (1 - abs(fmod((h / 60), 2) - 1));
-        double m = l - c / 2;
+        Color c(0, 0, 0);
+        c.hsv_to_rgb(h, v, v);
 
-        double rt, gt, bt;
-        rt = gt = bt = 0;
-        if (h < 60) {
-            rt = c;
-            gt = x;
-        } else if (h < 120) {
-            rt = x;
-            gt = c;
-        } else if (h < 180) {
-            gt = c;
-            bt = x;
-        } else if (h < 240) {
-            gt = x;
-            bt = c;
-        } else if (h < 300) {
-            bt = c;
-            rt = x;
-        } else {
-            bt = x;
-            rt = c;
-        }
-
-        uint8_t red = (uint8_t)(255 * (rt + m)), green = (uint8_t)(255 * (gt + m)), blue = (uint8_t)(255 * (bt + m));
-
-        GT.data[k * 3] = red;
-        GT.data[k * 3 + 1] = green;
-        GT.data[k * 3 + 2] = blue;
+        GT.data[k * 3] = c.r;
+        GT.data[k * 3 + 1] = c.g;
+        GT.data[k * 3 + 2] = c.b;
         G.data[k] = (uint8_t)(255 * v);
     }
 
@@ -258,4 +228,17 @@ void test1() {
     //     blank.data[i] = 255;
     // }
     // blank.write("blank.jpg");
+}
+
+int main(int argc, char** argv) {
+
+    Image colorful("images/colorful.jpg");
+    colorful.edge();
+    colorful.write("images/colorful_edge_gradient.png");
+
+    // Color c(100, .44, .44);
+    // c.hsv_to_rgb(100, .44, .44);
+    // printf("%f, %f, %f", c.r, c.g, c.b);
+
+    // test1();
 }

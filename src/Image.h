@@ -84,17 +84,20 @@ struct Image {
     Image& shade_h();
     Image& shade_v();
     Image& shade();
-    Image& edge(double detail = 0.09, bool gradient = false);
+    Image& edge(bool gradient = false, double detail_threshold = 0.09);
 
     Image& resize(uint32_t new_w, uint32_t new_h, bool linked = false);
 };
 
 struct Color {
     double r, g, b;
-    Color(double r, double g, double b);
-    ~Color();
+    Color(double r, double g, double b): r(r), g(g), b(b) {
+    }
+    ~Color() {
 
-    static void hsv_to_rgb(Color color, double h_deg, double s, double v) {
+    }
+
+    void hsv_to_rgb(double h_deg, double s, double v) {
         if (abs(s) > 1 || abs(v) > 1) {
             throw std::invalid_argument("saturation or value not in the range [0, 1]");
         }
@@ -128,9 +131,9 @@ struct Color {
             rt = c;
         }
 
-        color.r = 255 * (rt + m);
-        color.g = 255 * (gt + m);
-        color.b = 255 * (bt + m);
+        r = 255 * (rt + m);
+        g = 255 * (gt + m);
+        b = 255 * (bt + m);
     }
 };
 
