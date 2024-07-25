@@ -1,4 +1,4 @@
-#include "schrift.h"
+#include "lib/schrift.h"
 #include <cmath>
 #include <complex>
 #include <cstdint>
@@ -91,11 +91,8 @@ struct Image {
 
 struct Color {
     double r, g, b;
-    Color(double r, double g, double b): r(r), g(g), b(b) {
-    }
-    ~Color() {
-
-    }
+    Color(double r, double g, double b) : r(r), g(g), b(b) {}
+    ~Color() {}
 
     void hsv_to_rgb(double h_deg, double s, double v) {
         if (abs(s) > 1 || abs(v) > 1) {

@@ -13,8 +13,9 @@
 #define STEG_HEADER_SIZE sizeof(uint32_t) * 8
 
 #include "Image.h"
-#include "stb_image.h"
-#include "stb_image_write.h"
+#include "lib/stb_image.h"
+#include "lib/stb_image_write.h"
+#include "lib/schrift.h"
 #include "string.h"
 
 Image::Image(const char* filename) {

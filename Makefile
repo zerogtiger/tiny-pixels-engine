@@ -1,11 +1,20 @@
 CC				:= g++
 TARGET		:= "ImageProcessing"
 BUILDDIR	:= build
+BUILDLIBDIR	:= build/lib
 SRCDIR		:= src
+LIBDIR		:= src/lib
 CFLAGS		:= -std=c++17 -g
 SRCEXT		:= cpp
 SOURCES 	:= $(wildcard $(SRCDIR)/*.$(SRCEXT))
-OBJECTS		:= $(patsubst $(SRCDIR)/%, $(BUILDDIR)/%, $(SOURCES:.$(SRCEXT)=.o))
+LIBSRCS 	:= $(wildcard $(LIBDIR)/*.$(SRCEXT))
+OBJECTS		:= $(patsubst $(SRCDIR)/%, $(BUILDDIR)/%, $(SOURCES:.$(SRCEXT)=.o)) $(patsubst $(LIBDIR)/%, $(BUILDLIBDIR)/%, $(LIBSRCS:.$(SRCEXT)=.o))
+
+$(BUILDLIBDIR)/%.o: $(LIBDIR)/%.$(SRCEXT)
+	@printf "\e[33m\e[1mBuilding...\e[0m\n";
+	@mkdir -p $(BUILDLIBDIR)
+	@echo "  $(notdir $@) from $(notdir $<)"
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@printf "\e[33m\e[1mBuilding...\e[0m\n";
@@ -34,7 +43,13 @@ r:
 
 PHONY: run
 run:
-	@mkdir -p $(BUILDDIR)
+	@echo $(OBJECTS)
+	@mkdir -p $(BUILDLIBDIR)
+	@for source in $(basename $(notdir $(LIBSRCS))); do\
+		printf "\e[33m\e[1mBuilding Library...\e[0m\n";\
+		echo "  $$source.o from $$source.$(SRCEXT)";\
+		$(CC) $(CFLAGS) -c -o $(BUILDLIBDIR)/$$source.o $(LIBDIR)/$$source.$(SRCEXT);\
+	done
 	@for source in $(basename $(notdir $(SOURCES))); do\
 		printf "\e[33m\e[1mBuilding...\e[0m\n";\
 		echo "  $$source.o from $$source.$(SRCEXT)";\

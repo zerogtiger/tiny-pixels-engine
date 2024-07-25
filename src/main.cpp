@@ -3,7 +3,6 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <iostream>
 #include <pthread.h>
 
 void make_random_complex_arr(uint32_t len, std::complex<double>* z) {
