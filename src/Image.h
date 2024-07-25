@@ -10,6 +10,7 @@
 #define _USE_MATH_DEFINES
 
 enum ImageType { PNG, JPG, BMP, TGA };
+enum ScaleMethod {Nearest, Bilinear, Bicubic, Fourier, Edge, HQX, Mipmap};
 
 struct Font;
 
@@ -86,7 +87,7 @@ struct Image {
     Image& shade();
     Image& edge(bool gradient = false, double detail_threshold = 0.09);
 
-    Image& resize(uint32_t new_w, uint32_t new_h, bool linked = false);
+    Image& f_scale(uint32_t new_w, uint32_t new_h, bool linked = false, ScaleMethod method = Nearest);
 };
 
 struct Color {

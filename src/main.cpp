@@ -232,9 +232,15 @@ void test1() {
 int main(int argc, char** argv) {
 
     Image colorful("images/colorful.jpg");
-    colorful.edge();
-    colorful.write("images/colorful_edge_gradient.png");
+    Image colorful_near("images/colorful.jpg");
+    colorful.f_scale(1200, -1, true, Bilinear);
+    colorful.write("images/colorful_f_scale.png");
+    colorful_near.f_scale(1200, -1, true, Nearest);
+    colorful_near.write("images/colorful_f_scale_near.png");
+    colorful_near.diffmap_scale(colorful);
+    colorful_near.write("images/colorful_f_scale_diff.png");
 
+    // colorful.edge();
     // Color c(100, .44, .44);
     // c.hsv_to_rgb(100, .44, .44);
     // printf("%f, %f, %f", c.r, c.g, c.b);
