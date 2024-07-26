@@ -88,6 +88,9 @@ struct Image {
     Image& edge(bool gradient = false, double detail_threshold = 0.09);
 
     Image& f_scale(uint32_t new_w, uint32_t new_h, bool linked = false, ScaleMethod method = Nearest);
+
+    Image& invert_color(uint8_t channel);
+    Image& gamma(uint8_t channel, double gamma_delta);
 };
 
 struct Color {

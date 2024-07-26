@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <iostream>
 #include <pthread.h>
 
 void make_random_complex_arr(uint32_t len, std::complex<double>* z) {
@@ -232,13 +233,19 @@ void test1() {
 int main(int argc, char** argv) {
 
     Image colorful("images/colorful.jpg");
-    Image colorful_near("images/colorful.jpg");
-    colorful.f_scale(1200, -1, true, Bilinear);
-    colorful.write("images/colorful_f_scale.png");
-    colorful_near.f_scale(1200, -1, true, Nearest);
-    colorful_near.write("images/colorful_f_scale_near.png");
-    colorful_near.diffmap_scale(colorful);
-    colorful_near.write("images/colorful_f_scale_diff.png");
+    colorful.gamma(0, 2);
+    colorful.gamma(1, 2);
+    colorful.gamma(2, 2);
+    colorful.write("images/colorful_gamma.png");
+
+    // Image colorful("images/colorful.jpg");
+    // Image colorful_near("images/colorful.jpg");
+    // colorful.f_scale(1200, -1, true, Bilinear);
+    // colorful.write("images/colorful_f_scale.png");
+    // colorful_near.f_scale(1200, -1, true, Nearest);
+    // colorful_near.write("images/colorful_f_scale_near.png");
+    // colorful_near.diffmap_scale(colorful);
+    // colorful_near.write("images/colorful_f_scale_diff.png");
 
     // colorful.edge();
     // Color c(100, .44, .44);

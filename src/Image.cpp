@@ -1028,8 +1028,7 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, ScaleMethod m
                 }
             }
         }
-    }
-    else {
+    } else {
         throw std::invalid_argument("The scale method specified is not yet supported\n");
     }
     w = new_w;
@@ -1037,6 +1036,26 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, ScaleMethod m
     delete[] data;
     data = new_data;
     size = new_w * new_h * channels;
+
+    return *this;
+}
+
+Image& Image::invert_color(uint8_t channel) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            data[(i * w + j) * channels + channel] = 255 - data[(i * w + j) * channels + channel];
+        }
+    }
+    return *this;
+}
+
+Image& Image::gamma(uint8_t channel, double gamma_delta) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            data[(i * w + j) * channels + channel] =
+                255.0 * pow(data[(i * w + j) * channels + channel] / 255.0, 1/gamma_delta);
+        }
+    }
 
     return *this;
 }
