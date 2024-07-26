@@ -91,6 +91,8 @@ struct Image {
 
     Image& invert_color(uint8_t channel);
     Image& gamma(uint8_t channel, double gamma_delta);
+
+    Image& color_reduce(bool error_diffusion = true);
 };
 
 struct Color {

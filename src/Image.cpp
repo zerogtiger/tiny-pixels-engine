@@ -6,10 +6,11 @@
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
+#include <utility>
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#define BYTE_BOUND(value) (value > 255 ? 255 : (value < 0 ? 0 : value))
+#define BYTE_BOUND(value) ((value) > 255 ? 255 : ((value) < 0 ? 0 : (value)))
 #define SGN(value) ((value > 0) - (value < 0))
 #define STEG_HEADER_SIZE sizeof(uint32_t) * 8
 
@@ -1053,9 +1054,55 @@ Image& Image::gamma(uint8_t channel, double gamma_delta) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             data[(i * w + j) * channels + channel] =
-                255.0 * pow(data[(i * w + j) * channels + channel] / 255.0, 1/gamma_delta);
+                255.0 * pow(data[(i * w + j) * channels + channel] / 255.0, 1 / gamma_delta);
         }
     }
 
+    return *this;
+}
+
+Image& Image::color_reduce(bool error_diffusion) {
+    int r_diff, g_diff, b_diff, a[] = {0, 0, 0};
+    std::pair<int, int*> min(0x3f3f3f3f, a);
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            min.first = 0x3f3f3f3f;
+            for (int color = 0; color < 8; color++) {
+                r_diff = data[(i * w + j) * channels] - (((1 << 2) & color) ? 255 : 0);
+                g_diff = data[(i * w + j) * channels + (uint8_t)fmin(1, channels - 1)] - (((1 << 1) & color) ? 255 : 0);
+                b_diff = data[(i * w + j) * channels + (uint8_t)fmin(2, channels - 1)] - ((1 & color) ? 255 : 0);
+                if (r_diff * r_diff + g_diff * g_diff + b_diff * b_diff < min.first) {
+                    min.first = r_diff * r_diff + g_diff * g_diff + b_diff * b_diff;
+                    min.second[0] = r_diff;
+                    min.second[1] = g_diff;
+                    min.second[2] = b_diff;
+                }
+            }
+            if (channels < 3) {
+                data[(i * w + j) * channels] -= min.second[0];
+            } else {
+                data[(i * w + j) * channels] -= min.second[0];
+                data[(i * w + j) * channels + (uint8_t)fmin(1, channels - 1)] -= min.second[1];
+                data[(i * w + j) * channels + (uint8_t)fmin(2, channels - 1)] -= min.second[2];
+            }
+            if (error_diffusion) {
+                // Floyd-Steinberg Error Diffusion
+                for (int c_cn = 0; c_cn < fmin(3, channels); c_cn++) {
+                    if (j + 1 < w)
+                        data[(i * w + (j + 1)) * channels + c_cn] =
+                            BYTE_BOUND(data[(i * w + (j + 1)) * channels + c_cn] + 7.0 / 16 * min.second[c_cn]);
+                    if (i + 1 < h && j + 1 < w)
+                        data[((i + 1) * w + (j + 1)) * channels + c_cn] = BYTE_BOUND(
+                            data[((i + 1) * w + (j + 1)) * channels + c_cn] + 1.0 / 16 * min.second[c_cn]);
+                    if (i + 1 < h)
+                        data[((i + 1) * w + j) * channels + c_cn] =
+                            BYTE_BOUND(data[((i + 1) * w + j) * channels + c_cn] + 5.0 / 16 * min.second[c_cn]);
+                    if (i + 1 < h && j > 0)
+                        data[((i + 1) * w + (j - 1)) * channels + c_cn] = BYTE_BOUND(
+                            data[((i + 1) * w + (j - 1)) * channels + c_cn] + 3.0 / 16 * min.second[c_cn]);
+                }
+            }
+        }
+    }
     return *this;
 }

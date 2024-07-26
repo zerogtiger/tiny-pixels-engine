@@ -232,11 +232,9 @@ void test1() {
 
 int main(int argc, char** argv) {
 
-    Image colorful("images/colorful.jpg");
-    colorful.gamma(0, 2);
-    colorful.gamma(1, 2);
-    colorful.gamma(2, 2);
-    colorful.write("images/colorful_gamma.png");
+    Image colorful("images/sobel_test.jpg");
+    colorful.color_reduce(true);
+    colorful.write("images/sobel_test_color_reduce_ed.png");
 
     // Image colorful("images/colorful.jpg");
     // Image colorful_near("images/colorful.jpg");
