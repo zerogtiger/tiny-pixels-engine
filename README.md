@@ -43,6 +43,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Lens distortion
 - Misc.
     - [ ] Frame
+    - [x] Text overlay
     - [ ] Procedural texture generation
         - [ ] Brick
         - [ ] Gradient
