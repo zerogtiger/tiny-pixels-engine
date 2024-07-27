@@ -13,6 +13,7 @@
 enum ImageType { PNG, JPG, BMP, TGA };
 enum ScaleMethod { Nearest, Bilinear, Bicubic, Fourier, Edge, HQX, Mipmap };
 enum InterpolationMethod { Constant, Linear, BSpline };
+enum RotationMethod {RSamp, RShear, RAM};
 
 struct Font;
 struct Color;
@@ -107,6 +108,7 @@ struct Image {
     Image& edge(bool gradient = false, double detail_threshold = 0.09);
 
     Image& f_scale(uint32_t new_w, uint32_t new_h, bool linked = false, ScaleMethod method = Nearest);
+    Image& rotate(double degrees);
 
     Image& invert_color(uint8_t channel);
     Image& gamma(uint8_t channel, double gamma_delta);
@@ -115,6 +117,7 @@ struct Image {
 
     Image& color_ramp(std::vector<std::pair<double, Color>> points, InterpolationMethod method = InterpolationMethod::Linear);
     Image& preview_color_ramp(std::vector<std::pair<double, Color>> points, InterpolationMethod method = InterpolationMethod::Linear) const;
+
 };
 
 struct Color {

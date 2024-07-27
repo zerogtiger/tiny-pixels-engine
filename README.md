@@ -21,6 +21,12 @@ A C++ based image and graphics processing library implemented from scratch.
             - [ ] Bezier
             - [ ] B-Spline
 - Filtering
+    - [ ] Color reduce
+        - [x] 3-bit color
+        - [x] 3-bit Floyd-Steinberg error diffusion
+        - [ ] 8-bit color
+        - [ ] 8-bit Floyd-Steinberg error diffusion
+        - [ ] 8/16-bit color quantization
     - [ ] Blur
         - [ ] Box
         - [ ] Bokeh
@@ -52,7 +58,11 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Voronoi
         - [ ] Wave
 
-## Low Priority Bug fixes
+## Medium Priority Bug Fixes
+- [ ] Unnecessary memory use/leaks
+- [ ] Rename `enum` to generalize for 1-D and 2-D interpolation methods
+
+## Low Priority Bug Fixes
 - [ ] Edge bleeding in edge detection via `Image::edge()` function due to Fast Fourier transform limitations
 - [ ] Sobel edge detection gradient for single channel images
 - [ ] Make makefile build/run more efficient

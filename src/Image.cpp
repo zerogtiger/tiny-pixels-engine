@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <list>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -1167,3 +1166,5 @@ Image& Image::preview_color_ramp(std::vector<std::pair<double, Color>> points, I
     ret->color_ramp(points, method);
     return *ret;
 }
+
+
