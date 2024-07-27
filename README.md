@@ -29,7 +29,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Masking
 - Transform
     - [ ] Rotate
-    - [ ] Scae
+    - [ ] Scale
         - [x] Nearest
         - [x] Bilinear
         - [ ] Bicubic
