@@ -1,8 +1,8 @@
 # Graphics Processor
-A C++ based image and graphics processing library. 
+A C++ based image and graphics processing library implemented from scratch.
 
 ## Todo
-- [ ] Color
+- Color
     - [x] Invert
     - [ ] Color correction/balance
     - [ ] Exposure
@@ -20,14 +20,14 @@ A C++ based image and graphics processing library.
             - [x] Linear
             - [ ] Bezier
             - [ ] B-Spline
-- [ ] Filtering
+- Filtering
     - [ ] Blur
         - [ ] Box
         - [ ] Bokeh
         - [ ] Gaussian (3x3 case implemented)
     - [ ] Anti-aliasing
     - [ ] Masking
-- [ ] Transform
+- Transform
     - [ ] Rotate
     - [ ] Scae
         - [x] Nearest
@@ -41,7 +41,7 @@ A C++ based image and graphics processing library.
     - [x] Crop
     - [x] Flip
     - [ ] Lens distortion
-- [ ] Misc.
+- Misc.
     - [ ] Frame
     - [ ] Procedural texture generation
         - [ ] Brick
