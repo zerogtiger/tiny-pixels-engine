@@ -1,10 +1,12 @@
 #include "Image.h"
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <pthread.h>
+#include <vector>
 
 void make_random_complex_arr(uint32_t len, std::complex<double>* z) {
     for (uint32_t i = 0; i < len; i++) {
@@ -24,7 +26,6 @@ void matrix_scalar(double* arr, int size, double scalar) {
         arr[i] /= scalar;
     }
 }
-
 
 void test1() {
 
@@ -65,9 +66,9 @@ void test1() {
     double* theta = new double[test_size]; // direction
     double x, y;
     for (uint64_t k = 0; k < test_size; k++) {
-        x = blur_test_x.data[k*blur_test_x.channels];
-        y = blur_test_y.data[k*blur_test_y.channels];
-        g[k] = sqrt(x * x/255/255 + y * y/255/255);
+        x = blur_test_x.data[k * blur_test_x.channels];
+        y = blur_test_y.data[k * blur_test_y.channels];
+        g[k] = sqrt(x * x / 255 / 255 + y * y / 255 / 255);
         theta[k] = atan2(y, x);
     }
 
@@ -127,8 +128,9 @@ void test1() {
     //     auto ifft_2D_end = std::chrono::system_clock::now();
     //     print_complex_arr(len, a_recovered);
     //
-    //     printf("2D fft took %lldns\n", std::chrono::duration_cast<std::chrono::nanoseconds>(fft_2D_end - fft_2D_start).count());
-    //     printf("2D ifft took %lldns\n", std::chrono::duration_cast<std::chrono::nanoseconds>(ifft_2D_end - ifft_2D_start).count());
+    //     printf("2D fft took %lldns\n", std::chrono::duration_cast<std::chrono::nanoseconds>(fft_2D_end -
+    //     fft_2D_start).count()); printf("2D ifft took %lldns\n",
+    //     std::chrono::duration_cast<std::chrono::nanoseconds>(ifft_2D_end - ifft_2D_start).count());
     //
     //     delete[] a;
     //     delete[] A;
@@ -232,9 +234,25 @@ void test1() {
 
 int main(int argc, char** argv) {
 
-    Image colorful("images/sobel_test.jpg");
-    colorful.color_reduce(true);
-    colorful.write("images/sobel_test_color_reduce_ed.png");
+    std::vector<std::pair<double, Color>> points{
+        {0.2, Color(0, 100, 200)}, {0.4, Color(100, 100, 100)}, {0.8, Color(200, 0, 100)}};
+    // std::vector<std::pair<double, Color>> points{
+    //     {0.0, Color(255, 0, 0)}, {1.0, Color(0, 0, 255)}};
+    std::sort(points.begin(), points.end());
+    Image colorful("images/test1.jpg");
+    Image preview = colorful.preview_color_ramp(points, InterpolationMethod::Linear);
+    preview.write("images/color_ramp_preview.png");
+
+    // std::sort(points.begin(), points.end());
+    // for (int i = 0; i < points.size(); i++) {
+    //     printf("(%f, [%f, %f, %f]),\n", points[i].first, points[i].second.r, points[i].second.g, points[i].second.b);
+    // }
+    //
+    // std::cout << (std::upper_bound(points.begin(), points.end(), std::make_pair(0.0, Color(110, 110, 110))) - points.begin())<< "\n";
+
+    // Image colorful("images/test1.jpg");
+    // colorful.color_reduce(true);
+    // colorful.write("images/test1_cr.png");
 
     // Image colorful("images/colorful.jpg");
     // Image colorful_near("images/colorful.jpg");

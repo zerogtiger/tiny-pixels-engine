@@ -14,6 +14,8 @@ A C++ based image and graphics processing library.
 - [ ] Procedural texture generation
 
 ## Enhancements
+- [ ] Bezier interpolation method in `Image::color_ramp()` function
+- [ ] B-Spline interpolation method in `Image::color_ramp()` function
 - [ ] Edge bleeding in edge detection via `Image::edge()` function due to Fast Fourier transform limitations
 - [ ] Sobel edge detection gradient for single channel images
 - [ ] Make readme build/run more efficient

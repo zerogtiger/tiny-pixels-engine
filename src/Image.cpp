@@ -1,8 +1,10 @@
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <list>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -51,16 +53,16 @@ bool Image::write(const char* filename) {
     ImageType type = getFileType(filename);
     int success;
     switch (type) {
-    case PNG:
+    case ImageType::PNG:
         success = stbi_write_png(filename, w, h, channels, data, w * channels);
         break;
-    case BMP:
+    case ImageType::BMP:
         success = stbi_write_bmp(filename, w, h, channels, data);
         break;
-    case JPG:
+    case ImageType::JPG:
         success = stbi_write_jpg(filename, w, h, channels, data, 100);
         break;
-    case TGA:
+    case ImageType::TGA:
         success = stbi_write_tga(filename, w, h, channels, data);
         break;
     }
@@ -71,13 +73,13 @@ ImageType Image::getFileType(const char* filename) {
     const char* ext = strrchr(filename, '.');
     if (ext != nullptr) {
         if (strcmp(ext, ".png") == 0) {
-            return PNG;
+            return ImageType::PNG;
         } else if (strcmp(ext, ".jpg") == 0) {
-            return JPG;
+            return ImageType::JPG;
         } else if (strcmp(ext, ".BMP") == 0) {
-            return BMP;
+            return ImageType::BMP;
         } else if (strcmp(ext, ".tga") == 0) {
-            return TGA;
+            return ImageType::TGA;
         }
     }
     return PNG;
@@ -975,7 +977,7 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, ScaleMethod m
     }
     uint8_t* new_data = new uint8_t[new_w * new_h * channels];
     double r_old, c_old;
-    if (method == Nearest) {
+    if (method == ScaleMethod::Nearest) {
         for (int r = 0; r < new_h; r++) {
             for (int c = 0; c < new_w; c++) {
                 r_old = (double)r * h / new_h;
@@ -986,7 +988,7 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, ScaleMethod m
                 }
             }
         }
-    } else if (method == Bilinear) {
+    } else if (method == ScaleMethod::Bilinear) {
         std::cout << "yes"
                   << "\n";
         double r_diff, c_diff;
@@ -1092,17 +1094,76 @@ Image& Image::color_reduce(bool error_diffusion) {
                         data[(i * w + (j + 1)) * channels + c_cn] =
                             BYTE_BOUND(data[(i * w + (j + 1)) * channels + c_cn] + 7.0 / 16 * min.second[c_cn]);
                     if (i + 1 < h && j + 1 < w)
-                        data[((i + 1) * w + (j + 1)) * channels + c_cn] = BYTE_BOUND(
-                            data[((i + 1) * w + (j + 1)) * channels + c_cn] + 1.0 / 16 * min.second[c_cn]);
+                        data[((i + 1) * w + (j + 1)) * channels + c_cn] =
+                            BYTE_BOUND(data[((i + 1) * w + (j + 1)) * channels + c_cn] + 1.0 / 16 * min.second[c_cn]);
                     if (i + 1 < h)
                         data[((i + 1) * w + j) * channels + c_cn] =
                             BYTE_BOUND(data[((i + 1) * w + j) * channels + c_cn] + 5.0 / 16 * min.second[c_cn]);
                     if (i + 1 < h && j > 0)
-                        data[((i + 1) * w + (j - 1)) * channels + c_cn] = BYTE_BOUND(
-                            data[((i + 1) * w + (j - 1)) * channels + c_cn] + 3.0 / 16 * min.second[c_cn]);
+                        data[((i + 1) * w + (j - 1)) * channels + c_cn] =
+                            BYTE_BOUND(data[((i + 1) * w + (j - 1)) * channels + c_cn] + 3.0 / 16 * min.second[c_cn]);
                 }
             }
         }
     }
     return *this;
+}
+Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, InterpolationMethod method) {
+    // assuming all points are sorted
+    // std::sort(points.begin(), points.end());
+    grayscale_avg();
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            int ceil_idx =
+                std::upper_bound(points.begin(), points.end(),
+                                 std::make_pair((double)data[(i * w + j) * channels] / 255, Color(-1, -1, -1))) -
+                points.begin();
+            if (ceil_idx == 0 && (method == InterpolationMethod::Constant || method == InterpolationMethod::Linear)) {
+                if (channels < 3) {
+                    data[(i * w + j) * channels] = points[0].second.lum();
+                } else {
+                    for (int clr = 0; clr < 3; clr++) {
+                        data[(i * w + j) * channels + clr] = points[0].second.get(clr);
+                    }
+                }
+            } else if (method == InterpolationMethod::Constant ||
+                       (method == InterpolationMethod::Linear && ceil_idx == points.size())) {
+                if (channels < 3) {
+                    data[(i * w + j) * channels] = points[ceil_idx - 1].second.lum();
+                } else {
+                    for (int clr = 0; clr < 3; clr++) {
+                        data[(i * w + j) * channels + clr] = points[ceil_idx - 1].second.get(clr);
+                    }
+                }
+            } else if (method == InterpolationMethod::Linear) {
+                std::pair<double, Color> x1 = points[ceil_idx - 1], x2 = points[ceil_idx];
+                double x = (double)data[(i * w + j) * channels] / 255.0;
+                if (channels < 3) {
+                    data[(i * w + j) * channels] = (x - x1.first) / (x2.first - x1.first) * x2.second.lum() +
+                                                   (x2.first - x) / (x2.first - x1.first) * x1.second.lum();
+                } else {
+                    for (int clr = 0; clr < 3; clr++) {
+                        x = (double)data[(i * w + j) * channels + clr] / 255.0;
+                        data[(i * w + j) * channels + clr] =
+                            (x - x1.first) / (x2.first - x1.first) * x2.second.get(clr) +
+                            (x2.first - x) / (x2.first - x1.first) * x1.second.get(clr);
+                    }
+                }
+            }
+        }
+    }
+    return *this;
+}
+Image& Image::preview_color_ramp(std::vector<std::pair<double, Color>> points, InterpolationMethod method) const {
+    Image* ret = new Image(256, 20, 3);
+    for (int i = 0; i < ret->h; i++) {
+        for (int j = 0; j < ret->w; j++) {
+            for (int cd = 0; cd < 3; cd++) {
+                ret->data[(i * ret->w + j) * ret->channels + cd] = j;
+            }
+        }
+    }
+    ret->write("images/preview_start.png");
+    ret->color_ramp(points, method);
+    return *ret;
 }
