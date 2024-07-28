@@ -43,7 +43,7 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Edge
         - [ ] HQX
         - [ ] Mipmap
-    - [ ] Translate
+    - [x] Translate
     - [x] Crop
     - [x] Flip
     - [ ] Lens distortion
@@ -60,7 +60,7 @@ A C++ based image and graphics processing library implemented from scratch.
 
 ## Medium Priority Bug Fixes
 - [ ] Unnecessary memory use/leaks
-- [ ] Rename `enum` to generalize for 1-D and 2-D interpolation methods
+- [x] Rename `enum` to generalize for 1-D and 2-D interpolation methods
 
 ## Low Priority Bug Fixes
 - [ ] Edge bleeding in edge detection via `Image::edge()` function due to Fast Fourier transform limitations

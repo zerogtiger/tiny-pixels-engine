@@ -234,14 +234,15 @@ void test1() {
 
 int main(int argc, char** argv) {
 
-    std::vector<std::pair<double, Color>> points{
-        {0.2, Color(0, 100, 200)}, {0.4, Color(100, 100, 100)}, {0.8, Color(200, 0, 100)}};
+    // std::vector<std::pair<double, Color>> points{
+    //     {0.2, Color(0, 100, 200)}, {0.4, Color(100, 100, 100)}, {0.8, Color(200, 0, 100)}};
     // std::vector<std::pair<double, Color>> points{
     //     {0.0, Color(255, 0, 0)}, {1.0, Color(0, 0, 255)}};
-    std::sort(points.begin(), points.end());
+    // std::sort(points.begin(), points.end());
     Image colorful("images/test1.jpg");
-    Image preview = colorful.preview_color_ramp(points, InterpolationMethod::Linear);
-    preview.write("images/color_ramp_preview.png");
+    colorful.translate(-100, 100, Color(255, 0, 0, 100));
+    colorful.write("images/test1_translated.png");
+    // preview.write("images/color_ramp_preview.png");
 
     // std::sort(points.begin(), points.end());
     // for (int i = 0; i < points.size(); i++) {

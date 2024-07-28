@@ -969,14 +969,14 @@ Image& Image::edge(bool gradient, double detail_threshold) {
     return *this;
 }
 
-Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, ScaleMethod method) {
+Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, TwoDimInterp method) {
     printf("Channels: %d", channels);
     if (linked) {
         new_h = (uint32_t)round(((double)h) / w * new_w);
     }
     uint8_t* new_data = new uint8_t[new_w * new_h * channels];
     double r_old, c_old;
-    if (method == ScaleMethod::Nearest) {
+    if (method == TwoDimInterp::Nearest) {
         for (int r = 0; r < new_h; r++) {
             for (int c = 0; c < new_w; c++) {
                 r_old = (double)r * h / new_h;
@@ -987,7 +987,7 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, ScaleMethod m
                 }
             }
         }
-    } else if (method == ScaleMethod::Bilinear) {
+    } else if (method == TwoDimInterp::Bilinear) {
         std::cout << "yes"
                   << "\n";
         double r_diff, c_diff;
@@ -1107,7 +1107,7 @@ Image& Image::color_reduce(bool error_diffusion) {
     }
     return *this;
 }
-Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, InterpolationMethod method) {
+Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method) {
     // assuming all points are sorted
     // std::sort(points.begin(), points.end());
     grayscale_avg();
@@ -1117,7 +1117,7 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, Interpola
                 std::upper_bound(points.begin(), points.end(),
                                  std::make_pair((double)data[(i * w + j) * channels] / 255, Color(-1, -1, -1))) -
                 points.begin();
-            if (ceil_idx == 0 && (method == InterpolationMethod::Constant || method == InterpolationMethod::Linear)) {
+            if (ceil_idx == 0 && (method == OneDimInterp::Constant || method == OneDimInterp::Linear)) {
                 if (channels < 3) {
                     data[(i * w + j) * channels] = points[0].second.lum();
                 } else {
@@ -1125,8 +1125,8 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, Interpola
                         data[(i * w + j) * channels + clr] = points[0].second.get(clr);
                     }
                 }
-            } else if (method == InterpolationMethod::Constant ||
-                       (method == InterpolationMethod::Linear && ceil_idx == points.size())) {
+            } else if (method == OneDimInterp::Constant ||
+                       (method == OneDimInterp::Linear && ceil_idx == points.size())) {
                 if (channels < 3) {
                     data[(i * w + j) * channels] = points[ceil_idx - 1].second.lum();
                 } else {
@@ -1134,7 +1134,7 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, Interpola
                         data[(i * w + j) * channels + clr] = points[ceil_idx - 1].second.get(clr);
                     }
                 }
-            } else if (method == InterpolationMethod::Linear) {
+            } else if (method == OneDimInterp::Linear) {
                 std::pair<double, Color> x1 = points[ceil_idx - 1], x2 = points[ceil_idx];
                 double x = (double)data[(i * w + j) * channels] / 255.0;
                 if (channels < 3) {
@@ -1148,12 +1148,14 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, Interpola
                             (x2.first - x) / (x2.first - x1.first) * x1.second.get(clr);
                     }
                 }
+            } else {
+                throw std::invalid_argument("The scale method specified is not yet supported\n");
             }
         }
     }
     return *this;
 }
-Image& Image::preview_color_ramp(std::vector<std::pair<double, Color>> points, InterpolationMethod method) const {
+Image& Image::preview_color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method) const {
     Image* ret = new Image(256, 20, 3);
     for (int i = 0; i < ret->h; i++) {
         for (int j = 0; j < ret->w; j++) {
@@ -1166,5 +1168,26 @@ Image& Image::preview_color_ramp(std::vector<std::pair<double, Color>> points, I
     ret->color_ramp(points, method);
     return *ret;
 }
-
-
+// Notes: will not add alpha channel even if fill does have alpha channel != 255
+Image& Image::translate(int x, int y, Color fill) {
+    uint8_t *new_data = new uint8_t[size];
+    for (uint32_t i = 0; i < h; i++) {
+        for (uint32_t j = 0; j < w; j++) {
+            for (uint8_t cd = 0; cd < channels; cd++) {
+                if (i - y < 0 || j - y < 0 || i - y >= h || j - x >= w) {
+                    if (cd < 3 && channels >= 3)
+                        new_data[(i * w + j) * channels + cd] = fill.get(cd);
+                    else if (cd < 3)
+                        new_data[(i * w + j) * channels + cd] = fill.lum();
+                    else
+                        new_data[(i * w + j) * channels + cd] = fill.a;
+                } else
+                    new_data[(i * w + j) * channels + cd] =
+                        data[((uint32_t)round(i - y) * w + (uint32_t)round(j - x)) * channels + cd];
+                }
+        }
+    }
+    delete[] data;
+    data = new_data;
+    return *this;
+}
