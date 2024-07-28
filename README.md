@@ -4,7 +4,8 @@ A C++ based image and graphics processing library implemented from scratch.
 ## Todo
 - Color
     - [x] Invert
-    - [ ] Color correction/balance
+    - [ ] Color correction
+    - [x] Color balance (lift, gamma, gain)
     - [ ] Exposure
     - [x] Gamma
     - [ ] HSV adjustments

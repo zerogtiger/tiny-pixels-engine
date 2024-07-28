@@ -1269,3 +1269,22 @@ Image& Image::set_alpha(Image& alph, bool resize_to_fit, TwoDimInterp method) {
     }
     return *this;
 }
+// Notes: alternative formula available
+Image& Image::color_balance(Color lift, Color gamma, Color gain) {  
+    for (int i =0; i < 3; i++) {
+        lift.set(i, lift.get(i)/255.0);
+        gamma.set(i, gamma.get(i)/255.0);
+        gain.set(i, gain.get(i)/255.0);
+    }
+    double x;
+    for (int i = 0; i < h; i++) {
+        for (int j = 0 ; j < w; j++) {
+            for (int cd = 0; cd < fmin(channels, 3); cd++) {
+                double x = data[(i * w + j)*channels + cd]/255.0;
+                data[(i * w + j)*channels + cd] = BYTE_BOUND(round(pow(gain.get(cd) * (x + lift.get(cd) * (1 - x)), 1.0/gamma.get(cd)) * 255.0));
+                // data[(i * w + j)*channels + cd] = BYTE_BOUND(round(pow(x*(gain.get(cd) - lift.get(cd)) + lift.get(cd), 1.0/gamma.get(cd)) * 255.0));
+            }
+        }
+    }
+    return *this;
+}

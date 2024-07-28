@@ -79,6 +79,29 @@ struct Color {
             break;
         }
     }
+    bool set(int col, double val) {
+        switch (col) {
+        case 0:
+            r = val;
+            return true;
+            break;
+        case 1:
+            g = val;
+            return true;
+            break;
+        case 2:
+            b = val;
+            return true;
+            break;
+        case 3: 
+            a = val;
+            return true;
+            break;
+        default:
+            return false;
+            break;
+        }
+    }
 
     bool operator<(const Color& other) const {
         return r == other.r ? (g == other.g ? b < other.b : g < other.g) : r < other.r;
@@ -208,5 +231,7 @@ struct Image {
     std::vector<Image*> seperate_channels();
     Image& combine_channels(std::vector<Image*> imgs, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);
     Image& set_alpha(Image& alph, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);
+
+    Image& color_balance(Color lift, Color gamma, Color gain);
 };
 

@@ -236,16 +236,20 @@ void test1() {
 
 int main(int argc, char** argv) {
 
-    Image colorful("images/test1.jpg");
-    Image clear_bg("images/clear_bg.png");
-    std::vector<std::pair<double, Color>> points{
-        {0.2, Color(0, 0, 0)}, {0.4, Color(255, 255, 255)}, {0.8, Color(50, 50, 50)}};
-    std::vector<Image*> v = colorful.seperate_channels();
-    Image color_ramp = colorful.preview_color_ramp(points);
-    clear_bg.set_alpha(color_ramp, true);
-    clear_bg.write("clear_bg_set_alpha.png");
-    colorful.set_alpha(color_ramp, true);
-    color_ramp.write("color_ramp_f_scale.png");
+    Image colorful("images/colorful.jpg");
+    colorful.color_balance(Color(0.756*255/2, 0.604*255/2, 0.409*255/2), Color(0.870*255/2, 0.371*255/2, 0.382*255/2)
+            , Color(255,255,255));
+            // , Color(2*255, 2*255, 2*255));
+    colorful.write("images/colorful_balance.png");
+    // Image clear_bg("images/clear_bg.png");
+    // std::vector<std::pair<double, Color>> points{
+    //     {0.2, Color(0, 0, 0)}, {0.4, Color(255, 255, 255)}, {0.8, Color(50, 50, 50)}};
+    // std::vector<Image*> v = colorful.seperate_channels();
+    // Image color_ramp = colorful.preview_color_ramp(points);
+    // clear_bg.set_alpha(color_ramp, true);
+    // clear_bg.write("clear_bg_set_alpha.png");
+    // colorful.set_alpha(color_ramp, true);
+    // color_ramp.write("color_ramp_f_scale.png");
     // for (int i = 0; i < v.size(); i++) {
     //     v[i]->write((std::to_string(i) + "_separate.png").c_str());
     // }
