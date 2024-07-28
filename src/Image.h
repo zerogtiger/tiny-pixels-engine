@@ -204,5 +204,9 @@ struct Image {
     Image& color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method = OneDimInterp::Linear);
     Image& preview_color_ramp(std::vector<std::pair<double, Color>> points,
                               OneDimInterp method = OneDimInterp::Linear) const;
+
+    std::vector<Image*> seperate_channels();
+    Image& combine_channels(std::vector<Image*> imgs, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);
+    Image& set_alpha(Image& alph, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);
 };
 

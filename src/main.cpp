@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <pthread.h>
+#include <string>
+#include <strstream>
 #include <vector>
 
 void make_random_complex_arr(uint32_t len, std::complex<double>* z) {
@@ -234,14 +236,35 @@ void test1() {
 
 int main(int argc, char** argv) {
 
+    Image colorful("images/test1.jpg");
+    Image clear_bg("images/clear_bg.png");
+    std::vector<std::pair<double, Color>> points{
+        {0.2, Color(0, 0, 0)}, {0.4, Color(255, 255, 255)}, {0.8, Color(50, 50, 50)}};
+    std::vector<Image*> v = colorful.seperate_channels();
+    Image color_ramp = colorful.preview_color_ramp(points);
+    clear_bg.set_alpha(color_ramp, true);
+    clear_bg.write("clear_bg_set_alpha.png");
+    colorful.set_alpha(color_ramp, true);
+    color_ramp.write("color_ramp_f_scale.png");
+    // for (int i = 0; i < v.size(); i++) {
+    //     v[i]->write((std::to_string(i) + "_separate.png").c_str());
+    // }
+    // v[0]->f_scale(v[0]->w/2, v[0]->h);
+    // colorful.combine_channels(v);
+    // colorful.write("combined.png");
+
+    // int max = -INFINITY;
+    // max = fmax(1, max);
+    // std::cout << max << "\n";
+
     // std::vector<std::pair<double, Color>> points{
     //     {0.2, Color(0, 100, 200)}, {0.4, Color(100, 100, 100)}, {0.8, Color(200, 0, 100)}};
     // std::vector<std::pair<double, Color>> points{
     //     {0.0, Color(255, 0, 0)}, {1.0, Color(0, 0, 255)}};
     // std::sort(points.begin(), points.end());
-    Image colorful("images/test1.jpg");
-    colorful.translate(-100, 100, Color(255, 0, 0, 100));
-    colorful.write("images/test1_translated.png");
+    // Image colorful("images/test1.jpg");
+    // colorful.translate(-100, 100, Color(255, 0, 0, 100));
+    // colorful.write("images/test1_translated.png");
     // preview.write("images/color_ramp_preview.png");
 
     // std::sort(points.begin(), points.end());

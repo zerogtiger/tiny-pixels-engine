@@ -1168,9 +1168,10 @@ Image& Image::preview_color_ramp(std::vector<std::pair<double, Color>> points, O
     ret->color_ramp(points, method);
     return *ret;
 }
+
 // Notes: will not add alpha channel even if fill does have alpha channel != 255
 Image& Image::translate(int x, int y, Color fill) {
-    uint8_t *new_data = new uint8_t[size];
+    uint8_t* new_data = new uint8_t[size];
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
             for (uint8_t cd = 0; cd < channels; cd++) {
@@ -1184,10 +1185,87 @@ Image& Image::translate(int x, int y, Color fill) {
                 } else
                     new_data[(i * w + j) * channels + cd] =
                         data[((uint32_t)round(i - y) * w + (uint32_t)round(j - x)) * channels + cd];
-                }
+            }
         }
     }
     delete[] data;
     data = new_data;
+    return *this;
+}
+
+std::vector<Image*> Image::seperate_channels() {
+    std::vector<Image*> v;
+    for (int8_t cd = 0; cd < channels; cd++) {
+        Image* sep_chn = new Image(w, h, 1);
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                sep_chn->data[i * w + j] = data[(i * w + j) * channels + cd];
+            }
+        }
+        v.push_back(sep_chn);
+    }
+    v.shrink_to_fit();
+    return v;
+}
+
+// Notes: assuming imgs is in order of {r_img, b_img, g_img, a_img, useless channel...} and default values are 0 if not
+// the same size;
+Image& Image::combine_channels(std::vector<Image*> imgs, bool resize_to_fit, TwoDimInterp method) {
+    uint32_t max_w = 0, max_h = 0;
+    for (int i = 0; i < imgs.size(); i++) {
+        max_w = fmax(max_w, imgs[i]->w);
+        max_h = fmax(max_h, imgs[i]->h);
+    }
+    uint8_t* new_data = new uint8_t[max_w * max_h * imgs.size()];
+    if (resize_to_fit) {
+        for (int i = 0; i < imgs.size(); i++) {
+            imgs[i]->f_scale(max_w, max_h, false, method);
+        }
+    }
+    for (int img = 0; img < imgs.size(); img++) {
+        for (int i = 0; i < max_h; i++) {
+            for (int j = 0; j < max_w; j++) {
+                new_data[(i * max_w + j) * imgs.size() + img] =
+                    (i >= imgs[img]->h || j >= imgs[img]->w)
+                        ? 0
+                        : imgs[img]->data[(i * imgs[img]->w + j) * imgs[img]->channels];
+            }
+        }
+    }
+    w = max_w;
+    h = max_h;
+    channels = imgs.size();
+    delete[] data;
+    data = new_data;
+    return *this;
+}
+
+// Notes:
+// - default values are opaque (255)
+// - requires testing for single-channel grayscale images (try 2 channel images)
+Image& Image::set_alpha(Image& alph, bool resize_to_fit, TwoDimInterp method) {
+    if (resize_to_fit) {
+        alph.f_scale(w, h, false, method);
+    }
+    if (channels >= 4) {
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                data[(i * w + j) * channels + 3] =
+                    (i >= alph.h || j >= alph.w) ? 255 : alph.data[(i * alph.w + j) * alph.channels];
+            }
+        }
+    } else {
+        uint8_t* new_data = new uint8_t[w * h * (channels + 1)];
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                memcpy(&new_data[(i * w + j) * (channels + 1)], &data[(i * w + j) * channels], (size_t) channels);
+                new_data[(i * w + j) * (channels + 1) + 3] =
+                    (i >= alph.h || j >= alph.w) ? 255 : alph.data[(i * alph.w + j) * alph.channels];
+            }
+        }
+        channels++;
+        delete[] data;
+        data = new_data;
+    }
     return *this;
 }

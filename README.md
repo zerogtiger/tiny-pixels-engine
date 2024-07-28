@@ -14,7 +14,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Mixing options
         - [ ] Alpha over
         - [x] Separate colors (RGBA channels)
-        - [ ] Combine colors (RGBA channels)
+        - [x] Combine colors (RGBA channels)
         - [ ] Color ramp
             - [x] Constant
             - [x] Linear
@@ -57,12 +57,18 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Noise
         - [ ] Voronoi
         - [ ] Wave
+- Documentation (not started)
 
-## Medium Priority Bug Fixes
+## High Priority Enhancement/Bug Fixes
+- [ ] Bilinear scaling (`Image::preview_color_ramp` then scale to a large image via `Image::f_scale` with `TwoDimInterp::Biliea` as interpolation method
+
+## Medium Priority Enhancement/Bug Fixes
+- [ ] Ensure uniformity of logic when using data from another image (first channel vs. average grayscale)
 - [ ] Unnecessary memory use/leaks
 - [x] Rename `enum` to generalize for 1-D and 2-D interpolation methods
 
 ## Low Priority Bug Fixes
+- [ ] Use `uint_t` and `size_t` where necessary
 - [ ] Edge bleeding in edge detection via `Image::edge()` function due to Fast Fourier transform limitations
 - [ ] Sobel edge detection gradient for single channel images
 - [ ] Make makefile build/run more efficient
