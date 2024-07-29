@@ -62,9 +62,10 @@ A C++ based image and graphics processing library implemented from scratch.
 - Documentation (not started)
 
 ## High Priority Enhancement/Bug Fixes
-- [ ] Bilinear scaling (`Image::preview_color_ramp` then scale to a large image via `Image::f_scale` with `TwoDimInterp::Biliea` as interpolation method
+- [x] Bilinear scaling (`Image::preview_color_ramp` then scale to a large image via `Image::f_scale` with `TwoDimInterp::Biliea` as interpolation method
 
 ## Medium Priority Enhancement/Bug Fixes
+- [ ] Demo images in `README.md`
 - [ ] Ensure uniformity of logic when using data from another image (first channel vs. average grayscale)
 - [ ] Unnecessary memory use/leaks
 - [x] Rename `enum` to generalize for 1-D and 2-D interpolation methods

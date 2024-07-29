@@ -988,8 +988,6 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, TwoDimInterp 
             }
         }
     } else if (method == TwoDimInterp::Bilinear) {
-        std::cout << "yes"
-                  << "\n";
         double r_diff, c_diff;
         for (int r = 0; r < new_h; r++) {
             for (int c = 0; c < new_w; c++) {
@@ -998,19 +996,24 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, TwoDimInterp 
                 // r_diff = r_old - floor(r_old) < ceil(r_old) - r_old ? r_old - floor(r_old) : r_old - ceil(r_old);
                 // c_diff = c_old - floor(c_old) < ceil(c_old) - c_old ? c_old - floor(c_old) : c_old - ceil(c_old);
                 for (int cd = 0; cd < channels; cd++) {
-                    if (r_old == floor(r_old) && c_old == floor(c_old)) {
+                    if ((r_old == floor(r_old) && c_old == floor(c_old)) || (ceil(r_old) == h && ceil(c_old) == w) ||
+                        (r_old == floor(r_old) && ceil(c_old) == w) || (ceil(r_old) == h && c_old == floor(c_old))) {
                         new_data[(r * new_w + c) * channels + cd] =
-                            data[(uint32_t)round(r_old * w + c_old) * channels + cd];
-                    } else if (c_old == floor(c_old)) {
-                        uint32_t y1 = floor(r_old), y2 = ceil(r_old);
+                            data[(uint32_t)round(floor(r_old) * w + floor(c_old)) * channels + cd];
+                    } else if (c_old == floor(c_old) || ceil(c_old) == w) {
+                        uint32_t y1 = (uint32_t)round(floor(r_old)), y2 = (uint32_t)round(ceil(r_old));
                         new_data[(r * new_w + c) * channels + cd] =
-                            data[(uint32_t)round(y1 * w + c_old) * channels + cd] * (double)(y2 - r_old) / (y2 - y1) +
-                            data[(uint32_t)round(y2 * w + c_old) * channels + cd] * (double)(r_old - y1) / (y2 - y1);
-                    } else if (r_old == floor(r_old)) {
-                        uint32_t x1 = floor(c_old), x2 = ceil(c_old);
+                            data[(uint32_t)round(y1 * w + floor(c_old)) * channels + cd] * (double)(y2 - r_old) /
+                                (y2 - y1) +
+                            data[(uint32_t)round(y2 * w + floor(c_old)) * channels + cd] * (double)(r_old - y1) /
+                                (y2 - y1);
+                    } else if (r_old == floor(r_old) || ceil(r_old) == h) {
+                        uint32_t x1 = (uint32_t)round(floor(c_old)), x2 = (uint32_t)round(ceil(c_old));
                         new_data[(r * new_w + c) * channels + cd] =
-                            data[(uint32_t)round(r_old * w + x1) * channels + cd] * (double)(x2 - c_old) / (x2 - x1) +
-                            data[(uint32_t)round(r_old * w + x2) * channels + cd] * (double)(c_old - x1) / (x2 - x1);
+                            data[(uint32_t)round(floor(r_old) * w + x1) * channels + cd] * (double)(x2 - c_old) /
+                                (x2 - x1) +
+                            data[(uint32_t)round(floor(r_old) * w + x2) * channels + cd] * (double)(c_old - x1) /
+                                (x2 - x1);
                     }
                     // else if (abs(r_diff) < 0.005 && abs(c_diff) < 0.005) {
                     //     new_data[(r * new_w + c) * channels + cd] =
@@ -1367,4 +1370,3 @@ Image& Image::histogram_lum() {
     }
     return *hist;
 }
-
