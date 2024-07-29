@@ -1119,7 +1119,7 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
                 points.begin();
             if (ceil_idx == 0 && (method == OneDimInterp::Constant || method == OneDimInterp::Linear)) {
                 if (channels < 3) {
-                    data[(i * w + j) * channels] = points[0].second.lum();
+                    data[(i * w + j) * channels] = points[0].second.luminance();
                 } else {
                     for (int clr = 0; clr < 3; clr++) {
                         data[(i * w + j) * channels + clr] = points[0].second.get(clr);
@@ -1128,7 +1128,7 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
             } else if (method == OneDimInterp::Constant ||
                        (method == OneDimInterp::Linear && ceil_idx == points.size())) {
                 if (channels < 3) {
-                    data[(i * w + j) * channels] = points[ceil_idx - 1].second.lum();
+                    data[(i * w + j) * channels] = points[ceil_idx - 1].second.luminance();
                 } else {
                     for (int clr = 0; clr < 3; clr++) {
                         data[(i * w + j) * channels + clr] = points[ceil_idx - 1].second.get(clr);
@@ -1138,8 +1138,8 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
                 std::pair<double, Color> x1 = points[ceil_idx - 1], x2 = points[ceil_idx];
                 double x = (double)data[(i * w + j) * channels] / 255.0;
                 if (channels < 3) {
-                    data[(i * w + j) * channels] = (x - x1.first) / (x2.first - x1.first) * x2.second.lum() +
-                                                   (x2.first - x) / (x2.first - x1.first) * x1.second.lum();
+                    data[(i * w + j) * channels] = (x - x1.first) / (x2.first - x1.first) * x2.second.luminance() +
+                                                   (x2.first - x) / (x2.first - x1.first) * x1.second.luminance();
                 } else {
                     for (int clr = 0; clr < 3; clr++) {
                         x = (double)data[(i * w + j) * channels + clr] / 255.0;
@@ -1179,7 +1179,7 @@ Image& Image::translate(int x, int y, Color fill) {
                     if (cd < 3 && channels >= 3)
                         new_data[(i * w + j) * channels + cd] = fill.get(cd);
                     else if (cd < 3)
-                        new_data[(i * w + j) * channels + cd] = fill.lum();
+                        new_data[(i * w + j) * channels + cd] = fill.luminance();
                     else
                         new_data[(i * w + j) * channels + cd] = fill.a;
                 } else
@@ -1258,7 +1258,7 @@ Image& Image::set_alpha(Image& alph, bool resize_to_fit, TwoDimInterp method) {
         uint8_t* new_data = new uint8_t[w * h * (channels + 1)];
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
-                memcpy(&new_data[(i * w + j) * (channels + 1)], &data[(i * w + j) * channels], (size_t) channels);
+                memcpy(&new_data[(i * w + j) * (channels + 1)], &data[(i * w + j) * channels], (size_t)channels);
                 new_data[(i * w + j) * (channels + 1) + 3] =
                     (i >= alph.h || j >= alph.w) ? 255 : alph.data[(i * alph.w + j) * alph.channels];
             }
@@ -1270,21 +1270,101 @@ Image& Image::set_alpha(Image& alph, bool resize_to_fit, TwoDimInterp method) {
     return *this;
 }
 // Notes: alternative formula available
-Image& Image::color_balance(Color lift, Color gamma, Color gain) {  
-    for (int i =0; i < 3; i++) {
-        lift.set(i, lift.get(i)/255.0);
-        gamma.set(i, gamma.get(i)/255.0);
-        gain.set(i, gain.get(i)/255.0);
+Image& Image::color_balance(Color lift, Color gamma, Color gain) {
+    for (int i = 0; i < 3; i++) {
+        lift.set(i, lift.get(i) / 255.0);
+        gamma.set(i, gamma.get(i) / 255.0);
+        gain.set(i, gain.get(i) / 255.0);
     }
     double x;
     for (int i = 0; i < h; i++) {
-        for (int j = 0 ; j < w; j++) {
+        for (int j = 0; j < w; j++) {
             for (int cd = 0; cd < fmin(channels, 3); cd++) {
-                double x = data[(i * w + j)*channels + cd]/255.0;
-                data[(i * w + j)*channels + cd] = BYTE_BOUND(round(pow(gain.get(cd) * (x + lift.get(cd) * (1 - x)), 1.0/gamma.get(cd)) * 255.0));
-                // data[(i * w + j)*channels + cd] = BYTE_BOUND(round(pow(x*(gain.get(cd) - lift.get(cd)) + lift.get(cd), 1.0/gamma.get(cd)) * 255.0));
+                double x = data[(i * w + j) * channels + cd] / 255.0;
+                data[(i * w + j) * channels + cd] =
+                    BYTE_BOUND(round(pow(gain.get(cd) * (x + lift.get(cd) * (1 - x)), 1.0 / gamma.get(cd)) * 255.0));
+                // data[(i * w + j)*channels + cd] = BYTE_BOUND(round(pow(x*(gain.get(cd) - lift.get(cd)) +
+                // lift.get(cd), 1.0/gamma.get(cd)) * 255.0));
             }
         }
     }
     return *this;
 }
+// Notes: channels < 3 images require testing
+Image& Image::histogram(bool inc_lum, int channel) {
+    Image* hist = new Image(256, 256, 3);
+    uint32_t cnt_clr[4][256] = {{0}};
+    uint64_t max_cnt = 0;
+    Color color(0, 0, 0);
+
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (channel < 0) {
+                for (int cn = 0; cn < fmin(channels, 3); cn++) {
+                    max_cnt = fmax(++cnt_clr[cn][data[(i * w + j) * channels + cn]], max_cnt);
+                }
+                if (inc_lum && channels >= 3) {
+                    max_cnt = fmax(++cnt_clr[3][(uint32_t)round(color.luminance(data[(i * w + j) * channels],
+                                                                                data[(i * w + j) * channels + 1],
+                                                                                data[(i * w + j) * channels + 2]))],
+                                   max_cnt);
+                } else if (inc_lum) {
+                    printf("Unable to calculate luminance for image with %d channels.\n", channels);
+                }
+            } else {
+                max_cnt = fmax(++cnt_clr[0][data[(i * w + j) * channels + channel]], max_cnt);
+            }
+        }
+    }
+
+    for (int c = 0; c < 256; c++) {
+        for (int cn = 0; cn < fmin(channels, channel < 0 ? 3.0 : 1.0); cn++) {
+            for (int r = 0; r <= (double)cnt_clr[(channel < 0 ? cn : 0)][c] * 255.0 / (double)max_cnt; r++) {
+                if (channels < 3 || channel > 0) {
+                    hist->data[((255 - r) * 256 + c) * 3] = hist->data[((255 - r) * 256 + c) * 3 + 1] =
+                        hist->data[((255 - r) * 256 + c) * 3 + 2] = 155;
+                } else {
+                    hist->data[((255 - r) * 256 + c) * 3 + cn] += 155;
+                }
+            }
+        }
+        if (inc_lum && channels >= 3) {
+            for (int r = 0; r <= (double)cnt_clr[3][c] * 255.0 / (double)max_cnt; r++) {
+                hist->data[((255 - r) * 256 + c) * 3] += 100;
+                hist->data[((255 - r) * 256 + c) * 3 + 1] += 100;
+                hist->data[((255 - r) * 256 + c) * 3 + 2] += 100;
+            }
+        }
+    }
+    return *hist;
+}
+
+// Notes: channels < 3 images require testing
+Image& Image::histogram_lum() {
+    Image* hist = new Image(256, 256, 3);
+    uint32_t cnt_clr[256] = {0};
+    uint64_t max_cnt = 0;
+    Color color(0, 0, 0);
+
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (channels < 3) {
+                max_cnt = fmax(++cnt_clr[data[(i * w + j) * channels]], max_cnt);
+            } else {
+                max_cnt = fmax(++cnt_clr[(uint32_t)round(color.luminance(data[(i * w + j) * channels],
+                                                                         data[(i * w + j) * channels + 1],
+                                                                         data[(i * w + j) * channels + 2]))],
+                               max_cnt);
+            }
+        }
+    }
+
+    for (int c = 0; c < 256; c++) {
+        for (int r = 0; r <= (double)cnt_clr[c] * 255.0 / (double)max_cnt; r++) {
+            hist->data[((255 - r) * 256 + c) * 3] = hist->data[((255 - r) * 256 + c) * 3 + 1] =
+                hist->data[((255 - r) * 256 + c) * 3 + 2] = 155;
+        }
+    }
+    return *hist;
+}
+

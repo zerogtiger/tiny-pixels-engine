@@ -59,7 +59,6 @@ struct Color {
         b = 255 * (bt + m);
     }
 
-    double lum() { return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
     double get(int col) {
         switch (col) {
         case 0:
@@ -105,6 +104,22 @@ struct Color {
 
     bool operator<(const Color& other) const {
         return r == other.r ? (g == other.g ? b < other.b : g < other.g) : r < other.r;
+    }
+
+    Color operator+(const Color& other) const {
+        return Color(r + other.r, g + other.g, b + other.b, a + other.a);
+    }
+
+    double luminance(double r, double g, double b) {
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    double luminance() {
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    static double luminance(const Color& c) {
+        return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
     }
 };
 
@@ -233,5 +248,8 @@ struct Image {
     Image& set_alpha(Image& alph, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);
 
     Image& color_balance(Color lift, Color gamma, Color gain);
+
+    Image& histogram(bool inc_lum = true, int channel = -1);
+    Image& histogram_lum();
 };
 
