@@ -235,16 +235,29 @@ void test1() {
 }
 
 int main(int argc, char** argv) {
-    std::vector<std::pair<double, Color>> points{
-        {0.2, Color(0, 100, 200)}, {0.4, Color(100, 100, 100)}, {0.8, Color(200, 0, 100)}};
-    // std::sort(points.begin(), points.end());
-    Image colorful("images/test1.jpg");
-    // colorful.translate(-100, 100, Color(255, 0, 0, 100));
-    // colorful.write("images/test1_translated.png");
-    Image preview = colorful.preview_color_ramp(points);
-    preview.write("images/color_ramp_preview.png");
-    preview.f_scale(1000, 1000, false, TwoDimInterp::Bilinear);
-    preview.write("images/color_ramp_preview_scale.png");
+    
+    Image colorful("images/colorful.jpg");
+    colorful.HSV(90, 0, 0);
+    colorful.HSV(-90, 0, 0);
+    colorful.write("images/colorful_hsv.png");
+
+
+    // Color c (10, 0.1, 20);
+    // c = c.rgb_to_hsv(10, 0.1, 20);
+    // printf("%f, %f, %f\n", c.r, c.g, c.b);
+    // c.hsv_to_rgb(c.r, c.g, c.b);
+    // printf("%f, %f, %f\n", c.r, c.g, c.b);
+
+    // std::vector<std::pair<double, Color>> points{
+    //     {0.2, Color(0, 100, 200)}, {0.4, Color(100, 100, 100)}, {0.8, Color(200, 0, 100)}};
+    // // std::sort(points.begin(), points.end());
+    // Image colorful("images/test1.jpg");
+    // // colorful.translate(-100, 100, Color(255, 0, 0, 100));
+    // // colorful.write("images/test1_translated.png");
+    // Image preview = colorful.preview_color_ramp(points);
+    // preview.write("images/color_ramp_preview.png");
+    // preview.f_scale(1000, 1000, false, TwoDimInterp::Bilinear);
+    // preview.write("images/color_ramp_preview_scale.png");
 
     // Image colorful("images/colorful.jpg");
     // Image hist = colorful.histogram(false);

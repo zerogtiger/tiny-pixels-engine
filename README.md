@@ -1,18 +1,20 @@
 # Graphics Processor
 A C++ based image and graphics processing library implemented from scratch.
 
-## Todo
+## To-do
 - Color
     - [x] Invert
     - [x] Histogram
-    - [ ] Color correction
+    - [ ] Hue correct
+    - [ ] Tonal correction
     - [x] Color balance (lift, gamma, gain)
     - [ ] Exposure
     - [x] Gamma
-    - [ ] HSV adjustments
+    - [x] HSV adjustments
     - [ ] RGB curves
     - [ ] Tone map
     - [ ] White balance
+    - [ ] False color
     - [ ] Mixing options
         - [ ] Alpha over
         - [x] Separate colors (RGBA channels)
@@ -20,7 +22,7 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Color ramp
             - [x] Constant
             - [x] Linear
-            - [ ] Bezier
+            - [ ] Bézier
             - [ ] B-Spline
 - Filtering
     - [ ] Color reduce
@@ -65,8 +67,10 @@ A C++ based image and graphics processing library implemented from scratch.
 - [x] Bilinear scaling (`Image::preview_color_ramp` then scale to a large image via `Image::f_scale` with `TwoDimInterp::Biliea` as interpolation method
 
 ## Medium Priority Enhancement/Bug Fixes
+- [ ] Support separated channel images in `Image::HSV`
+- [ ] Color class HSV integration
 - [ ] Demo images in `README.md`
-- [ ] Ensure uniformity of logic when using data from another image (first channel vs. average grayscale)
+- [ ] Ensure uniformity of logic when using data from another image (first channel vs. average grayscale vs. separated channel image)
 - [ ] Unnecessary memory use/leaks
 - [x] Rename `enum` to generalize for 1-D and 2-D interpolation methods
 

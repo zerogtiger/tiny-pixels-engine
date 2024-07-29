@@ -1370,3 +1370,26 @@ Image& Image::histogram_lum() {
     }
     return *hist;
 }
+Image& Image::HSV(double hue_delta, double saturation_delta, double value_delta) {
+    if (channels < 3) {
+        printf("Given there are %d channels, hue and saturation adjustments will not take any effect.\n", channels);
+    }
+    Color c(0, 0, 0);
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (channels < 3) {
+                c = c.rgb_to_hsv(data[(i * w + j)*channels], data[(i * w + j)*channels], data[(i * w + j)*channels]);
+                c.hsv_to_rgb(c.r + hue_delta, c.g + saturation_delta, c.b + value_delta);
+                data[(i * w + j)*channels] = c.r;
+            }
+            else {
+                c = c.rgb_to_hsv(data[(i * w + j)*channels], data[(i * w + j)*channels + 1], data[(i * w + j)*channels + 2]);
+                c.hsv_to_rgb(c.r + hue_delta, std::clamp(c.g + saturation_delta, 0.0, 1.0), std::clamp(c.b + value_delta, 0.0, 1.0));
+                data[(i * w + j)*channels] = c.r;
+                data[(i * w + j)*channels + 1] = c.g;
+                data[(i * w + j)*channels + 2] = c.b;
+            }
+        }
+    }
+    return *this;
+}

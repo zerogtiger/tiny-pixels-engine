@@ -25,12 +25,12 @@ struct Color {
             throw std::invalid_argument("saturation or value not in the range [0, 1]");
         }
         const int mod = 360;
-        h_deg = fmod(h_deg, mod);
+        h_deg = fmod(fmod(h_deg, mod) + mod, mod);
 
         // hsl -> rgb
-        double c = (1 - abs(2 * v - 1)) * s;
+        double c = s * v;
         double x = c * (1 - abs(fmod((h_deg / 60), 2) - 1));
-        double m = v - c / 2;
+        double m = v - c;
 
         double rt, gt, bt;
         rt = gt = bt = 0;
@@ -54,9 +54,33 @@ struct Color {
             rt = c;
         }
 
-        r = 255 * (rt + m);
-        g = 255 * (gt + m);
-        b = 255 * (bt + m);
+        r = std::clamp(round(255 * (rt + m)), 0.0, 255.0);
+        g = std::clamp(round(255 * (gt + m)), 0.0, 255.0);
+        b = std::clamp(round(255 * (bt + m)), 0.0, 255.0);
+    }
+    Color& rgb_to_hsv(double rr, double gg, double bb) {
+        rr = rr / 255.0;
+        gg = gg / 255.0;
+        bb = bb / 255.0;
+        double c_max = fmax(rr, fmax(gg, bb)), c_min = fmin(rr, fmin(gg, bb)), delta = c_max - c_min;
+        Color* ret = new Color(0, 0, 0);
+        if (delta == 0) {
+            ret->r = 0;
+        } else if (c_max == rr) {
+            ret->r = 60.0 * fmod(fmod(((gg - bb) / delta), 6) + 6, 6);
+        } else if (c_max == gg) {
+            ret->r = 60.0 * (fmod(fmod((bb - rr) / delta, 6) + 6, 6) + 2);
+        } else if (c_max == bb) {
+            ret->r = 60.0 * (fmod(fmod((rr - gg) / delta, 6) + 6, 6) + 4);
+        }
+
+        if (c_max == 0) {
+            ret->g = 0;
+        } else {
+            ret->g = delta / c_max;
+        }
+        ret->b = c_max;
+        return *ret;
     }
 
     double get(int col) {
@@ -70,7 +94,7 @@ struct Color {
         case 2:
             return b;
             break;
-        case 3: 
+        case 3:
             return a;
             break;
         default:
@@ -92,7 +116,7 @@ struct Color {
             b = val;
             return true;
             break;
-        case 3: 
+        case 3:
             a = val;
             return true;
             break;
@@ -106,20 +130,31 @@ struct Color {
         return r == other.r ? (g == other.g ? b < other.b : g < other.g) : r < other.r;
     }
 
-    Color operator+(const Color& other) const {
-        return Color(r + other.r, g + other.g, b + other.b, a + other.a);
+    Color operator+(const Color& other) const { return Color(r + other.r, g + other.g, b + other.b, a + other.a); }
+
+    double luminance(double r, double g, double b) { return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+
+    double luminance() { return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+
+    static double luminance(const Color& c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; }
+};
+
+struct Adjustment {
+    double brightness = 0, contrast = 0, saturation = 0, lift = 1, gamma = 1, gain = 1;
+
+    Adjustment(double brightness, double contrast, double saturation, double lift, double gamma, double gain)
+        : brightness(brightness), contrast(contrast), saturation(saturation) {}
+
+    ~Adjustment() {}
+
+    Adjustment& create_adj_bcs(double brightness, double contrast, double saturation) {
+        Adjustment* ret = new Adjustment(brightness, contrast, saturation, 1, 1, 1);
+        return *ret;
     }
 
-    double luminance(double r, double g, double b) {
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    }
-
-    double luminance() {
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    }
-
-    static double luminance(const Color& c) {
-        return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+    Adjustment& create_adj_lgg(double lift, double gamma, double gain) {
+        Adjustment* ret = new Adjustment(0, 0, 0, lift, gamma, gain);
+        return *ret;
     }
 };
 
@@ -178,8 +213,8 @@ struct Image {
     Image& std_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc,
                                bool normalize = false);
 
-    // void std_convolve_clamp_to_zero_double(double* new_data, uint8_t channel, uint32_t ker_w, uint32_t ker_h, double
-    // ker[], uint32_t cr, uint32_t cc);
+    // void std_convolve_clamp_to_zero_double(double* new_data, uint8_t channel, uint32_t ker_w, uint32_t ker_h,
+    // double ker[], uint32_t cr, uint32_t cc);
     Image& flip_x();
     Image& flip_y();
 
@@ -224,6 +259,7 @@ struct Image {
 
     Image& brightness(uint8_t channel, double brightness_delta);
     Image& contrast(uint8_t channel, double contrast_delta);
+    Image& saturation(uint8_t channel, double contrast_delta);
 
     Image& shade_h();
     Image& shade_v();
@@ -244,12 +280,14 @@ struct Image {
                               OneDimInterp method = OneDimInterp::Linear) const;
 
     std::vector<Image*> seperate_channels();
-    Image& combine_channels(std::vector<Image*> imgs, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);
+    Image& combine_channels(std::vector<Image*> imgs, bool resize_to_fit = false,
+                            TwoDimInterp method = TwoDimInterp::Bilinear);
     Image& set_alpha(Image& alph, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);
 
     Image& color_balance(Color lift, Color gamma, Color gain);
 
     Image& histogram(bool inc_lum = true, int channel = -1);
     Image& histogram_lum();
-};
 
+    Image& HSV(double hue_delta, double saturation_delta, double value_delta);
+};
