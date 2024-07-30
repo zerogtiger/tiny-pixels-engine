@@ -290,4 +290,6 @@ struct Image {
     Image& histogram_lum();
 
     Image& HSV(double hue_delta, double saturation_delta, double value_delta);
+
+    Image& false_color(bool overwrite = false);
 };

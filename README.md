@@ -14,7 +14,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] RGB curves
     - [ ] Tone map
     - [ ] White balance
-    - [ ] False color
+    - [x] False color
     - [ ] Mixing options
         - [ ] Alpha over
         - [x] Separate colors (RGBA channels)
@@ -63,10 +63,10 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Wave
 - Documentation (not started)
 
-## High Priority Enhancement/Bug Fixes
+## High Priority Enhancements/Bug Fixes
 - [x] Bilinear scaling (`Image::preview_color_ramp` then scale to a large image via `Image::f_scale` with `TwoDimInterp::Biliea` as interpolation method
 
-## Medium Priority Enhancement/Bug Fixes
+## Medium Priority Enhancements/Bug Fixes
 - [ ] Support separated channel images in `Image::HSV`
 - [ ] Color class HSV integration
 - [ ] Demo images in `README.md`
@@ -74,7 +74,8 @@ A C++ based image and graphics processing library implemented from scratch.
 - [ ] Unnecessary memory use/leaks
 - [x] Rename `enum` to generalize for 1-D and 2-D interpolation methods
 
-## Low Priority Bug Fixes
+## Low Priority Enhancements/Bug Fixes
+- [ ] Clean up code in `Image::false_color` function
 - [ ] Use `uint_t` and `size_t` where necessary
 - [ ] Edge bleeding in edge detection via `Image::edge()` function due to Fast Fourier transform limitations
 - [ ] Sobel edge detection gradient for single channel images

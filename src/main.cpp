@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <iterator>
 #include <pthread.h>
 #include <string>
 #include <strstream>
@@ -236,10 +237,17 @@ void test1() {
 
 int main(int argc, char** argv) {
     
+    std::vector<std::pair<double, Color>> points{
+        {0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
     Image colorful("images/colorful.jpg");
-    colorful.HSV(90, 0, 0);
-    colorful.HSV(-90, 0, 0);
-    colorful.write("images/colorful_hsv.png");
+    // Image preview = colorful.preview_color_ramp(points);
+    // preview.false_color(true);
+    // preview.write("images/color_ramp_false_color_f.png");
+    colorful.false_color(true);
+    // colorful.HSV(90, 0, 0);
+    // colorful.HSV(-90, 0, 0);
+    colorful.write("images/colorful_false_color.png");
+
 
 
     // Color c (10, 0.1, 20);

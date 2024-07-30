@@ -1378,18 +1378,91 @@ Image& Image::HSV(double hue_delta, double saturation_delta, double value_delta)
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             if (channels < 3) {
-                c = c.rgb_to_hsv(data[(i * w + j)*channels], data[(i * w + j)*channels], data[(i * w + j)*channels]);
+                c = c.rgb_to_hsv(data[(i * w + j) * channels], data[(i * w + j) * channels],
+                                 data[(i * w + j) * channels]);
                 c.hsv_to_rgb(c.r + hue_delta, c.g + saturation_delta, c.b + value_delta);
-                data[(i * w + j)*channels] = c.r;
-            }
-            else {
-                c = c.rgb_to_hsv(data[(i * w + j)*channels], data[(i * w + j)*channels + 1], data[(i * w + j)*channels + 2]);
-                c.hsv_to_rgb(c.r + hue_delta, std::clamp(c.g + saturation_delta, 0.0, 1.0), std::clamp(c.b + value_delta, 0.0, 1.0));
-                data[(i * w + j)*channels] = c.r;
-                data[(i * w + j)*channels + 1] = c.g;
-                data[(i * w + j)*channels + 2] = c.b;
+                data[(i * w + j) * channels] = c.r;
+            } else {
+                c = c.rgb_to_hsv(data[(i * w + j) * channels], data[(i * w + j) * channels + 1],
+                                 data[(i * w + j) * channels + 2]);
+                c.hsv_to_rgb(c.r + hue_delta, std::clamp(c.g + saturation_delta, 0.0, 1.0),
+                             std::clamp(c.b + value_delta, 0.0, 1.0));
+                data[(i * w + j) * channels] = c.r;
+                data[(i * w + j) * channels + 1] = c.g;
+                data[(i * w + j) * channels + 2] = c.b;
             }
         }
     }
     return *this;
+}
+Image& Image::false_color(bool overwrite) {
+    Color c(0, 0, 0);
+    Color lookup[] = {Color(0, 0, 0),     Color(0, 0, 255),     Color(0, 127, 255),  Color(0, 255, 255),
+                      Color(0, 255, 127), Color(127, 127, 127), Color(127, 255, 0),  Color(255, 255, 0),
+                      Color(255, 127, 0), Color(255, 0, 0),     Color(255, 255, 255)};
+    Image* ret = this;
+    if (!overwrite || channels < 3) {
+        printf("yes\n");
+        Image* tmp = new Image(w, h, 3);
+        ret = tmp;
+    }
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            double lum = data[(i * w + j) * channels];
+            if (channels >= 3) {
+                lum = c.luminance(data[(i * w + j) * channels], data[(i * w + j) * channels + 1],
+                                  data[(i * w + j) * channels + 2]);
+            }
+            if (lum <= 0) {
+                ret->data[(i * w + j) * 3] = lookup[0].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[0].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[0].b;
+            } else if (lum <= 15) {
+                ret->data[(i * w + j) * 3] = lookup[1].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[1].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[1].b;
+            } else if (lum <= 58) {
+                ret->data[(i * w + j) * 3] = lookup[2].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[2].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[2].b;
+            } else if (lum <= 102) {
+                ret->data[(i * w + j) * 3] = lookup[3].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[3].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[3].b;
+            } else if (lum <= 117) {
+                ret->data[(i * w + j) * 3] = lookup[4].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[4].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[4].b;
+            } else if (lum <= 137) {
+                ret->data[(i * w + j) * 3] = lookup[5].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[5].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[5].b;
+            } else if (lum <= 153) {
+                ret->data[(i * w + j) * 3] = lookup[6].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[6].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[6].b;
+            } else if (lum <= 196) {
+                ret->data[(i * w + j) * 3] = lookup[7].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[7].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[7].b;
+            } else if (lum <= 239) {
+                ret->data[(i * w + j) * 3] = lookup[8].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[8].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[8].b;
+            } else if (lum <= 254) {
+                ret->data[(i * w + j) * 3] = lookup[9].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[9].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[9].b;
+            } else {
+                ret->data[(i * w + j) * 3] = lookup[10].r;
+                ret->data[(i * w + j) * 3 + 1] = lookup[10].g;
+                ret->data[(i * w + j) * 3 + 2] = lookup[10].b;
+            }
+        }
+    }
+    if (overwrite) {
+        data = ret->data;
+        size = w * h * 3;
+    }
+    return *ret;
 }
