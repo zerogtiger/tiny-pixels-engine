@@ -1400,6 +1400,7 @@ Image& Image::false_color(bool overwrite) {
     Color lookup[] = {Color(0, 0, 0),     Color(0, 0, 255),     Color(0, 127, 255),  Color(0, 255, 255),
                       Color(0, 255, 127), Color(127, 127, 127), Color(127, 255, 0),  Color(255, 255, 0),
                       Color(255, 127, 0), Color(255, 0, 0),     Color(255, 255, 255)};
+    int endpoints[] = {0, 15, 58, 102, 117, 137, 153, 196, 239, 254, 255};
     Image* ret = this;
     if (!overwrite || channels < 3) {
         printf("yes\n");
@@ -1465,4 +1466,17 @@ Image& Image::false_color(bool overwrite) {
         size = w * h * 3;
     }
     return *ret;
+}
+Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone, Adjustment highlight) {
+    if (channels < 3) {
+        printf("Given there are %d channels, hue and saturation adjustments will not take any effect.\n", channels);
+    }
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+
+
+
+    
+
+    return *this;
 }

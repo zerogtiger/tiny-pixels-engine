@@ -137,23 +137,27 @@ struct Color {
     double luminance() { return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
 
     static double luminance(const Color& c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; }
+
+    Color& apply_adj_rgb(Adjustment adj) {
+         
+    }
 };
 
 struct Adjustment {
-    double brightness = 0, contrast = 0, saturation = 0, lift = 1, gamma = 1, gain = 1;
+    double brightness = 0, contrast = 0, hue = 0, saturation = 0, lift = 1, gamma = 1, gain = 1;
 
-    Adjustment(double brightness, double contrast, double saturation, double lift, double gamma, double gain)
+    Adjustment(double brightness, double contrast, double hue, double saturation, double lift, double gamma, double gain)
         : brightness(brightness), contrast(contrast), saturation(saturation) {}
 
     ~Adjustment() {}
 
-    Adjustment& create_adj_bcs(double brightness, double contrast, double saturation) {
-        Adjustment* ret = new Adjustment(brightness, contrast, saturation, 1, 1, 1);
+    Adjustment& create_adj_bcs(double brightness, double contrast, double hue, double saturation) {
+        Adjustment* ret = new Adjustment(brightness, contrast, hue, saturation, 1, 1, 1);
         return *ret;
     }
 
     Adjustment& create_adj_lgg(double lift, double gamma, double gain) {
-        Adjustment* ret = new Adjustment(0, 0, 0, lift, gamma, gain);
+        Adjustment* ret = new Adjustment(0, 0, 0, 0, lift, gamma, gain);
         return *ret;
     }
 };
@@ -292,4 +296,6 @@ struct Image {
     Image& HSV(double hue_delta, double saturation_delta, double value_delta);
 
     Image& false_color(bool overwrite = false);
+
+    Image& tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone, Adjustment highlight);
 };

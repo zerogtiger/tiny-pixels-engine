@@ -14,7 +14,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] RGB curves
     - [ ] Tone map
     - [ ] White balance
-    - [x] False color
+    - [ ] False color
     - [ ] Mixing options
         - [ ] Alpha over
         - [x] Separate colors (RGBA channels)
