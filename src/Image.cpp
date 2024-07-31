@@ -1,3 +1,4 @@
+#include "Enums.h"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
