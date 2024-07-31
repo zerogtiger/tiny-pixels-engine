@@ -14,6 +14,25 @@ enum ImageType { PNG, JPG, BMP, TGA };
 enum TwoDimInterp { Nearest, Bilinear, Bicubic, Fourier, Edge, HQX, Mipmap, RSamp, RShear, RAM };
 enum OneDimInterp { Constant, Linear, BSpline };
 
+struct Adjustment {
+    double brightness = 0, contrast = 0, hue = 0, saturation = 0, value = 0, lift = 1, gamma = 1, gain = 1;
+
+    Adjustment(double brightness, double contrast, double hue, double saturation, double value, double lift, double gamma, double gain)
+        : brightness(brightness), contrast(contrast), hue(hue), saturation(saturation), value(value), lift(lift), gamma(gamma), gain(gain) {}
+
+    ~Adjustment() {}
+
+    Adjustment& create_adj_bcs(double brightness, double contrast, double hue, double saturation, double value) {
+        Adjustment* ret = new Adjustment(brightness, contrast, hue, saturation, value, 1, 1, 1);
+        return *ret;
+    }
+
+    Adjustment& create_adj_lgg(double lift, double gamma, double gain) {
+        Adjustment* ret = new Adjustment(0, 0, 0, 0, 0, lift, gamma, gain);
+        return *ret;
+    }
+};
+
 struct Color {
     double r, g, b, a = 255;
     Color(double r, double g, double b) : r(r), g(g), b(b) {}
@@ -139,26 +158,21 @@ struct Color {
     static double luminance(const Color& c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; }
 
     Color& apply_adj_rgb(Adjustment adj) {
-         
-    }
-};
+        // double brightness = 0, contrast = 0, hue = 0, saturation = 0, value = 0, lift = 1, gamma = 1, gain = 1;
 
-struct Adjustment {
-    double brightness = 0, contrast = 0, hue = 0, saturation = 0, lift = 1, gamma = 1, gain = 1;
+        double F = 259.0 * (adj.contrast + 255) / (255.0 * (259 - adj.contrast));
+        r = std::clamp(F * (r - 128) + 128 + adj.brightness, 0.0, 255.0);
+        g = std::clamp(F * (g - 128) + 128 + adj.brightness, 0.0, 255.0);
+        b = std::clamp(F * (b - 128) + 128 + adj.brightness, 0.0, 255.0);
 
-    Adjustment(double brightness, double contrast, double hue, double saturation, double lift, double gamma, double gain)
-        : brightness(brightness), contrast(contrast), saturation(saturation) {}
+        *this = rgb_to_hsv(r, g, b);
+        hsv_to_rgb(r + adj.hue, std::clamp(g + adj.saturation, 0.0, 1.1), std::clamp(b + adj.value, 0.0, 1.0));
 
-    ~Adjustment() {}
 
-    Adjustment& create_adj_bcs(double brightness, double contrast, double hue, double saturation) {
-        Adjustment* ret = new Adjustment(brightness, contrast, hue, saturation, 1, 1, 1);
-        return *ret;
-    }
+        r = pow(adj.gain * (r/255.0 + adj.lift * (1 - r/255.0)), 1.0 / adj.gamma) * 255.0;
+        g = pow(adj.gain * (g/255.0 + adj.lift * (1 - g/255.0)), 1.0 / adj.gamma) * 255.0;
+        b = pow(adj.gain * (b/255.0 + adj.lift * (1 - b/255.0)), 1.0 / adj.gamma) * 255.0;
 
-    Adjustment& create_adj_lgg(double lift, double gamma, double gain) {
-        Adjustment* ret = new Adjustment(0, 0, 0, 0, lift, gamma, gain);
-        return *ret;
     }
 };
 
