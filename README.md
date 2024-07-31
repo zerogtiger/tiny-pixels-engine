@@ -65,6 +65,7 @@ A C++ based image and graphics processing library implemented from scratch.
 
 ## High Priority Enhancements/Bug Fixes
 - [x] Bilinear scaling (`Image::preview_color_ramp` then scale to a large image via `Image::f_scale` with `TwoDimInterp::Biliea` as interpolation method
+- [ ] Refactor `Adjustment`, `Color` and `Font` from `image.h`
 
 ## Medium Priority Enhancements/Bug Fixes
 - [ ] Support separated channel images in `Image::HSV`
