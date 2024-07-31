@@ -1467,16 +1467,82 @@ Image& Image::false_color(bool overwrite) {
     }
     return *ret;
 }
-Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone, Adjustment highlight) {
+Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone,
+                           Adjustment highlight) {
     if (channels < 3) {
         printf("Given there are %d channels, hue and saturation adjustments will not take any effect.\n", channels);
     }
+    Color c(0, 0, 0);
+    double s_fac, m_fac, h_fac, lum, l, hh, fl, fh;
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
+            if (channels < 3) {
+                c.r = c.g = c.b = data[(i * w + j) * channels];
+            } else {
+                c.r = data[(i * w + j) * channels];
+                c.g = data[(i * w + j) * channels + 1];
+                c.b = data[(i * w + j) * channels + 2];
+            }
+            lum = c.luminance();
+            if (lum < midtones_start) {
+                s_fac = lum / midtones_start;
+                m_fac = 0.1 * lum / midtones_start;
+                h_fac = 0.1 * lum / ((midtones_start + midtones_end) / 2);
+            } else if (lum < midtones_end) {
+                if (lum <= ((double)midtones_end - midtones_start) / 2.0) {
+                    l = midtones_start;
+                    hh = ((double)midtones_end - midtones_start) / 2.0;
+                    fl = 1;
+                    fh = 0.1;
+                } else {
+                    l = ((double)midtones_end - midtones_start) / 2.0;
+                    hh = 255;
+                    fl = 0.1;
+                    fh = 0;
+                }
+                s_fac = ((lum - l) * fh + (hh - lum) * fl) / (hh - l);
+                if (lum < (midtones_start + midtones_end) / 2.0) {
+                    l = midtones_start;
+                    hh = (midtones_start + midtones_end) / 2.0;
+                    fl = 0.1;
+                    fh = 1;
+                } else {
+                    l = (midtones_start + midtones_end) / 2.0;
+                    hh = midtones_end;
+                    fl = 1;
+                    fh = 0.1;
+                }
+                m_fac = ((lum - l) * fh + (hh - lum) * fl) / (hh - l);
 
-
-
-    
-
+                if (lum <= ((double)midtones_start + midtones_end) / 2.0) {
+                    l = 0;
+                    hh = ((double)midtones_start + midtones_end) / 2.0;
+                    fl = 0;
+                    fh = 0.1;
+                } else {
+                    l = ((double)midtones_start + midtones_end) / 2.0;
+                    hh = midtones_end;
+                    fl = 0.1;
+                    fh = 0.75;
+                }
+                h_fac = ((lum - l) * fh + (hh - lum) * fl) / (hh - l);
+            } else {
+                s_fac = ((255 - lum) * 0.1) / (255 - ((double) midtones_start + midtones_end)/2.0);
+                m_fac = ((255 - lum) * 0.1) / (255 - midtones_end);
+                h_fac = ((lum - midtones_end) * 1 + (255.0 - lum) * 0.8) / (255 - midtones_end);
+            }
+            // printf("%f, %f, %f\n", s_fac, m_fac, h_fac);
+            c = c.apply_adj_rgb(shadow, s_fac);
+            c = c.apply_adj_rgb(midtone, m_fac);
+            c = c.apply_adj_rgb(highlight, h_fac);
+            if (channels < 3) {
+                data[(i * w + j) * channels] = c.r;
+            } else {
+                data[(i * w + j) * channels] = c.r;
+                data[(i * w + j) * channels + 1] = c.g;
+                data[(i * w + j) * channels + 2] = c.b;
+            }
+        }
+    }
     return *this;
 }

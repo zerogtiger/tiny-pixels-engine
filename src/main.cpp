@@ -236,19 +236,27 @@ void test1() {
 }
 
 int main(int argc, char** argv) {
-    
-    std::vector<std::pair<double, Color>> points{
-        {0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
+
+    // Color c(255,255, 255);
+    // std::cout<< c.luminance() << "\n";
+    std::vector<std::pair<double, Color>> points{{0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
     Image colorful("images/colorful.jpg");
+    Adjustment a = Adjustment();
+    Adjustment s = a.create_adj_bc(0, 0);
+    // Adjustment m = a.create_adj_bc(0, 0);
+    Adjustment m = a.create_adj_hsv(90, -2, 0);
+    Adjustment h = a.create_adj_bc(0, 0);
+    colorful.tone_correct(90, 190, s, m, h);
+    colorful.write("images/colorful_tone_correct.png");
+
     // Image preview = colorful.preview_color_ramp(points);
     // preview.false_color(true);
     // preview.write("images/color_ramp_false_color_f.png");
-    colorful.false_color(true);
+    // colorful.false_color(true);
     // colorful.HSV(90, 0, 0);
     // colorful.HSV(-90, 0, 0);
-    colorful.write("images/colorful_false_color.png");
-
-
+    // colorful.color_balance(Color(0, 0, 0), Color(255, 255, 255), Color(255, 255, 255));
+    // colorful.write("images/colorful_false_color.png");
 
     // Color c (10, 0.1, 20);
     // c = c.rgb_to_hsv(10, 0.1, 20);
@@ -315,7 +323,8 @@ int main(int argc, char** argv) {
     //     printf("(%f, [%f, %f, %f]),\n", points[i].first, points[i].second.r, points[i].second.g, points[i].second.b);
     // }
     //
-    // std::cout << (std::upper_bound(points.begin(), points.end(), std::make_pair(0.0, Color(110, 110, 110))) - points.begin())<< "\n";
+    // std::cout << (std::upper_bound(points.begin(), points.end(), std::make_pair(0.0, Color(110, 110, 110))) -
+    // points.begin())<< "\n";
 
     // Image colorful("images/test1.jpg");
     // colorful.color_reduce(true);

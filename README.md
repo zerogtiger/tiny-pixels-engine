@@ -6,7 +6,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [x] Invert
     - [x] Histogram
     - [ ] Hue correct
-    - [ ] Tonal correction
+    - [x] Tonal correction
     - [x] Color balance (lift, gamma, gain)
     - [ ] Exposure
     - [x] Gamma
@@ -68,6 +68,7 @@ A C++ based image and graphics processing library implemented from scratch.
 - [ ] Refactor `Adjustment`, `Color` and `Font` from `image.h`
 
 ## Medium Priority Enhancements/Bug Fixes
+- [ ] Test `Color::apply_adj_rgb` thoroughly for hue, saturation, value, lift, gamma, gain
 - [ ] Support separated channel images in `Image::HSV`
 - [ ] Color class HSV integration
 - [ ] Demo images in `README.md`
