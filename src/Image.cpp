@@ -1553,14 +1553,31 @@ Image& Image::rotate(double origin_x, double origin_y, double angle, TwoDimInter
     double x_old, y_old;
     for (int i = 0; i < h; i++) {
         for (int j =0; j < w; j++) {
-            x_old = j * cos(angle * M_PI / 180) - i * sin(angle * M_PI / 180);
-            y_old = j * sin(angle * M_PI / 180) + i * cos(angle * M_PI / 180);
-            if (x_old < 0 || x_old >= w || y_old < 0 || y_old >= h) {
-                data[(i * w + j)*channels] = fill.r;
-                data[(i * w + j)*channels + 1] = fill.g;
-                data[(i * w + j)*channels + 2] = fill.b;
+            x_old = (j - origin_x) * cos(-angle * M_PI / 180) - (i - origin_y) * sin(-angle * M_PI / 180) + origin_x;
+            y_old = (j - origin_x) * sin(-angle * M_PI / 180) + (i - origin_y) * cos(-angle * M_PI / 180) + origin_y;
+            if (method == TwoDimInterp::Nearest) {
+                if (x_old < 0 || x_old >= w || y_old < 0 || y_old >= h) {
+                    for (int cd = 0; cd < fmin(4, channels); cd++) {
+                        new_data[(i * w + j)*channels + cd] = fill.get(cd);
+                    }
+                }
+                for (int cd = 0; cd < fmin(4, channels); cd++) {
+                    new_data[(i * w + j)*channels + cd] = data[((uint32_t) y_old * w + (uint32_t) x_old)*channels + cd];
+                }
+            }
+            else if (method == TwoDimInterp::Bilinear) {
+                if (round(x_old) <= -1 || round(x_old) > w || round(y_old) <= -1 || round(y_old) > h) {
+                    for (int cd = 0; cd < fmin(4, channels); cd++) {
+                        new_data[(i * w + j)*channels + cd] = data[((uint32_t) y_old * w + (uint32_t) x_old)*channels + cd];
+                    }
+                }
+            }
+            else {
+                printf("The interpolation method is not yet supported");
             }
         }
     }
+    delete[] data;
+    data = new_data;
     return *this;
 }
