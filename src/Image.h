@@ -137,6 +137,8 @@ struct Image {
 
     Image& tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone,
                         Adjustment highlight);
+
+    Image& rotate(double origin_x, double origin_y, double angle, TwoDimInterp method = TwoDimInterp::Bilinear, Color fill = Color(0, 0, 0));
 };
 
 #endif

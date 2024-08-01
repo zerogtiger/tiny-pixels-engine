@@ -239,15 +239,18 @@ int main(int argc, char** argv) {
 
     // Color c(255,255, 255);
     // std::cout<< c.luminance() << "\n";
-    std::vector<std::pair<double, Color>> points{{0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
+    // std::vector<std::pair<double, Color>> points{{0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
     Image colorful("images/colorful.jpg");
-    Adjustment a = Adjustment();
-    Adjustment s = a.create_adj_bc(0, 0);
-    // Adjustment m = a.create_adj_bc(0, 0);
-    Adjustment m = a.create_adj_hsv(90, -2, 0);
-    Adjustment h = a.create_adj_bc(0, 0);
-    colorful.tone_correct(90, 190, s, m, h);
-    colorful.write("images/colorful_tone_correct.png");
+
+    colorful.rotate(0, 0, 30);
+    colorful.write("colorful_rotate.png");
+    // Adjustment a = Adjustment();
+    // Adjustment s = a.create_adj_bc(0, 0);
+    // // Adjustment m = a.create_adj_bc(0, 0);
+    // Adjustment m = a.create_adj_hsv(90, -2, 0);
+    // Adjustment h = a.create_adj_bc(0, 0);
+    // colorful.tone_correct(90, 190, s, m, h);
+    // colorful.write("images/colorful_tone_correct.png");
 
     // Image preview = colorful.preview_color_ramp(points);
     // preview.false_color(true);

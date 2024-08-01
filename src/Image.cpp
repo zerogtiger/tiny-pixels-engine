@@ -1547,3 +1547,20 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
     }
     return *this;
 }
+Image& Image::rotate(double origin_x, double origin_y, double angle, TwoDimInterp method, Color fill) {
+    uint8_t *new_data = new uint8_t[w*h*size];
+
+    double x_old, y_old;
+    for (int i = 0; i < h; i++) {
+        for (int j =0; j < w; j++) {
+            x_old = j * cos(angle * M_PI / 180) - i * sin(angle * M_PI / 180);
+            y_old = j * sin(angle * M_PI / 180) + i * cos(angle * M_PI / 180);
+            if (x_old < 0 || x_old >= w || y_old < 0 || y_old >= h) {
+                data[(i * w + j)*channels] = fill.r;
+                data[(i * w + j)*channels + 1] = fill.g;
+                data[(i * w + j)*channels + 2] = fill.b;
+            }
+        }
+    }
+    return *this;
+}
