@@ -1,17 +1,18 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+#include "Adjustment.h"
+#include "Enums.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <stdexcept>
-#include "Adjustment.h"
-#include "Enums.h"
 
 struct Color {
     double r, g, b, a = 255;
     Color(double r, double g, double b) : r(r), g(g), b(b) {}
     Color(double r, double g, double b, double a) : r(r), g(g), b(b), a(a) {}
+    Color(Color* color) : r(color->r), g(color->g), b(color->b), a(color->a) {}
     ~Color() {}
 
     void hsv_to_rgb(double h_deg, double s, double v) {
@@ -96,6 +97,13 @@ struct Color {
             break;
         }
     }
+    void set(Color color) {
+        r = color.r;
+        g = color.g;
+        b = color.b;
+        a = color.a;
+    }
+
     bool set(int col, double val) {
         switch (col) {
         case 0:
@@ -125,6 +133,14 @@ struct Color {
     }
 
     Color operator+(const Color& other) const { return Color(r + other.r, g + other.g, b + other.b, a + other.a); }
+
+    Color operator*(const Color& other) const { return Color(r * other.r, g * other.g, b * other.b, a * other.a); }
+
+    Color operator*(double mult) const { return Color(r * mult, g * mult, b * mult, a * mult); }
+
+    Color operator/(const Color& other) const { return Color(r / other.r, g / other.g, b / other.b, a / other.a); }
+
+    Color operator/(double div) const { return Color(r / div, g / div, b / div, a / div); }
 
     double luminance(double r, double g, double b) { return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
 

@@ -1,9 +1,11 @@
 #include "Enums.h"
+#include "Interpolation.h"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <ios>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -83,6 +85,34 @@ ImageType Image::getFileType(const char* filename) {
         }
     }
     return PNG;
+}
+
+uint8_t Image::get(uint32_t row, uint32_t col, uint32_t channel) { return data[(row * w + col) * channels + channel]; }
+uint8_t Image::get_or_default(uint32_t row, uint32_t col, uint32_t channel, uint8_t fallback) {
+    if (row < 0 || row >= w || col < 0 || col >= h) {
+        return fallback;
+    } else {
+        return get(row, col, channel);
+    }
+}
+Color Image::get_color(uint32_t row, uint32_t col) {
+    Color ret = new Color(0, 0, 0);
+    for (int i = 0; i < 3; i++) {
+        ret.set(i, get(row, col, (channels < 3 ? 0 : i)));
+    }
+    if (channels >= 4) {
+        ret.a = get(row, col, 3);
+    }
+    return ret;
+}
+Color Image::get_color_or_default(uint32_t row, uint32_t col, Color fallback) {
+    Color ret = new Color(0, 0, 0);
+    if (row < 0 || row >= h || col < 0 || col >= w) {
+        ret.set(fallback);
+        return ret;
+    } else {
+        return get_color(row, col);
+    }
 }
 
 Image& Image::grayscale_avg() {
@@ -1528,7 +1558,7 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
                 }
                 h_fac = ((lum - l) * fh + (hh - lum) * fl) / (hh - l);
             } else {
-                s_fac = ((255 - lum) * 0.1) / (255 - ((double) midtones_start + midtones_end)/2.0);
+                s_fac = ((255 - lum) * 0.1) / (255 - ((double)midtones_start + midtones_end) / 2.0);
                 m_fac = ((255 - lum) * 0.1) / (255 - midtones_end);
                 h_fac = ((lum - midtones_end) * 1 + (255.0 - lum) * 0.8) / (255 - midtones_end);
             }
@@ -1548,31 +1578,37 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
     return *this;
 }
 Image& Image::rotate(double origin_x, double origin_y, double angle, TwoDimInterp method, Color fill) {
-    uint8_t *new_data = new uint8_t[w*h*size];
+    uint8_t* new_data = new uint8_t[w * h * size];
 
     double x_old, y_old;
     for (int i = 0; i < h; i++) {
-        for (int j =0; j < w; j++) {
+        for (int j = 0; j < w; j++) {
             x_old = (j - origin_x) * cos(-angle * M_PI / 180) - (i - origin_y) * sin(-angle * M_PI / 180) + origin_x;
             y_old = (j - origin_x) * sin(-angle * M_PI / 180) + (i - origin_y) * cos(-angle * M_PI / 180) + origin_y;
             if (method == TwoDimInterp::Nearest) {
                 if (x_old < 0 || x_old >= w || y_old < 0 || y_old >= h) {
                     for (int cd = 0; cd < fmin(4, channels); cd++) {
-                        new_data[(i * w + j)*channels + cd] = fill.get(cd);
+                        new_data[(i * w + j) * channels + cd] = fill.get(cd);
                     }
                 }
                 for (int cd = 0; cd < fmin(4, channels); cd++) {
-                    new_data[(i * w + j)*channels + cd] = data[((uint32_t) y_old * w + (uint32_t) x_old)*channels + cd];
+                    new_data[(i * w + j) * channels + cd] =
+                        data[((uint32_t)y_old * w + (uint32_t)x_old) * channels + cd];
                 }
-            }
-            else if (method == TwoDimInterp::Bilinear) {
+            } else if (method == TwoDimInterp::Bilinear) {
+                Color ret(0, 0, 0);
+                Interpolation I;
                 if (round(x_old) <= -1 || round(x_old) > w || round(y_old) <= -1 || round(y_old) > h) {
                     for (int cd = 0; cd < fmin(4, channels); cd++) {
-                        new_data[(i * w + j)*channels + cd] = data[((uint32_t) y_old * w + (uint32_t) x_old)*channels + cd];
+                        new_data[(i * w + j) * channels + cd] = fill.get(cd);
+                    }
+                } else {
+                    ret = I.bilinear(*this, y_old, x_old, true);
+                    for (int cd = 0; cd < fmin(4, channels); cd++) {
+                        new_data[(i * w + j) * channels + cd] = ret.get(cd);
                     }
                 }
-            }
-            else {
+            } else {
                 printf("The interpolation method is not yet supported");
             }
         }

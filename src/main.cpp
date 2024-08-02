@@ -1,3 +1,4 @@
+#include "Color.h"
 #include "Image.h"
 #include <algorithm>
 #include <chrono>
@@ -237,13 +238,25 @@ void test1() {
 
 int main(int argc, char** argv) {
 
-    // Color c(255,255, 255);
-    // std::cout<< c.luminance() << "\n";
-    // std::vector<std::pair<double, Color>> points{{0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
+    Color c = new Color(2, 0, 0);
+    Color c2 = new Color(100, 0, 0);
+    Color c3 = c + c2;
+
+    // c->set(c2);
+    std::cout << c3.r << "\n";
+
+
     Image colorful("images/colorful.jpg");
+    // Color c = colorful.get_color_or_default(-9, 10);
+    // std::cout << c.r << "\n";
+
 
     colorful.rotate(0, 0, 30);
     colorful.write("colorful_rotate.png");
+
+    // Color c(255,255, 255);
+    // std::cout<< c.luminance() << "\n";
+    // std::vector<std::pair<double, Color>> points{{0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
     // Adjustment a = Adjustment();
     // Adjustment s = a.create_adj_bc(0, 0);
     // // Adjustment m = a.create_adj_bc(0, 0);
