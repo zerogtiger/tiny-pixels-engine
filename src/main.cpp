@@ -1,5 +1,6 @@
 #include "Color.h"
 #include "Image.h"
+#include "Interpolation.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -238,6 +239,26 @@ void test1() {
 
 int main(int argc, char** argv) {
 
+
+    Image bezier(100, 100, 3);
+
+    std::vector<std::pair<double, double>> ctrl{{0, 40},  {40, 80}, {80, 10}, {99, 30}};
+    std::vector<double> interp;
+    Interpolation I;
+    for (int i =0 ; i < 100; i++) {
+        interp.push_back(i);
+    }
+    std::vector<double> res = I.cubic_bezier(ctrl, interp);
+    
+    for (int i = 0; i < 100; i++) {
+        bezier.set(round(99-res[i]), interp[i], 0, 255);
+    }
+    for (int i = 0; i < 4; i++) {
+        bezier.set(round(99-ctrl[i].second), ctrl[i].first, 1, 255);
+    }
+
+    bezier.write("images/bezier.png");
+    
     // Color c = new Color(2, 0, 0);
     // Color c2 = new Color(100, 0, 0);
     // Color c3 = c + c2;
@@ -245,8 +266,7 @@ int main(int argc, char** argv) {
     // c->set(c2);
     // std::cout << c3.r << "\n";
 
-
-    Image colorful("images/colorful.jpg");
+    // Image colorful("images/colorful.jpg");
     // colorful.rotate(0, 0, 30);
     // Image hist = colorful.histogram(true, -1);
     // hist.write("hist.png");
@@ -255,8 +275,8 @@ int main(int argc, char** argv) {
     // std::cout << c.r << "\n";
 
 
-    colorful.rotate(0, 0, 30);
-    colorful.write("colorful_rotate.png");
+    // colorful.rotate(0, 0, 30);
+    // colorful.write("colorful_rotate.png");
 
     // Color c(255,255, 255);
     // std::cout<< c.luminance() << "\n";
