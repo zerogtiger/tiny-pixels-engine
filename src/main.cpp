@@ -242,22 +242,23 @@ int main(int argc, char** argv) {
 
     Image bezier(100, 100, 3);
 
-    std::vector<std::pair<double, double>> ctrl{{0, 40},  {40, 80}, {80, 10}, {99, 30}};
+    std::vector<std::pair<double, double>> ctrl{{0, 40},  {20, 80}, {60, 90}, {80, 20}, {99, 50}};
     std::vector<double> interp;
     Interpolation I;
     for (int i =0 ; i < 100; i++) {
         interp.push_back(i);
     }
-    std::vector<double> res = I.cubic_bezier(ctrl, interp);
+    std::vector<double> res = I.b_spline(ctrl, interp);
     
     for (int i = 0; i < 100; i++) {
         bezier.set(round(99-res[i]), interp[i], 0, 255);
+        std::cout << res[i] << "\n";
     }
     for (int i = 0; i < 4; i++) {
         bezier.set(round(99-ctrl[i].second), ctrl[i].first, 1, 255);
     }
 
-    bezier.write("images/bezier.png");
+    bezier.write("images/b_spline.png");
     
     // Color c = new Color(2, 0, 0);
     // Color c2 = new Color(100, 0, 0);

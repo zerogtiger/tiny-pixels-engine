@@ -7,6 +7,9 @@
 #include <cstdlib>
 class Interpolation {
   private:
+    static double eval_quad_bezier(double t, double p0, double p1, double p2, double p3) {
+        return pow(1 - t, 3) * p0 + 3 * pow(1 - t, 2) * t * p1 + 3 * (1 - t) * pow(t, 2) * p2 + pow(t, 3) * p3;
+    }
     static double eval_cubic_bezier(double t, double p0, double p1, double p2, double p3) {
         return pow(1 - t, 3) * p0 + 3 * pow(1 - t, 2) * t * p1 + 3 * (1 - t) * pow(t, 2) * p2 + pow(t, 3) * p3;
     }
@@ -67,6 +70,62 @@ class Interpolation {
             mid = (l + r) / 2.0;
             ret.push_back(eval_cubic_bezier(mid, control_points[0].second, control_points[1].second,
                                             control_points[2].second, control_points[3].second));
+        }
+        return ret;
+    }
+    static std::vector<double> b_spline(std::vector<std::pair<double, double>> control_points,
+                                        std::vector<double> interp_points, double error_bound = 0.0001) {
+        std::vector<double> ret;
+        std::vector<std::pair<double, double>> thirds;
+        std::vector<std::vector<std::pair<double, double>>> bezier;
+        std::vector<std::pair<double, double>> interval;
+
+        std::pair<double, double> l_third, r_third;
+        for (int i = 0; i < control_points.size() - 1; i++) {
+            l_third.first = control_points[i].first + (control_points[i + 1].first - control_points[i].first) / 3.0;
+            l_third.second = control_points[i].second + (control_points[i + 1].second - control_points[i].second) / 3.0;
+            r_third.first =
+                control_points[i].first + (control_points[i + 1].first - control_points[i].first) * 2.0 / 3.0;
+            r_third.second =
+                control_points[i].second + (control_points[i + 1].second - control_points[i].second) * 2.0 / 3.0;
+            thirds.push_back(l_third);
+            thirds.push_back(r_third);
+        }
+
+        interval.push_back(control_points[0]);
+        for (int i = 1; i < thirds.size() - 1; i += 2) {
+            interval.push_back(
+                {(thirds[i].first + thirds[i + 1].first) / 2.0, (thirds[i].second + thirds[i + 1].second) / 2.0});
+        }
+        interval.push_back(control_points[control_points.size() - 1]);
+
+        for (int i = 0; i < interval.size() - 1; i++) {
+            std::vector<std::pair<double, double>> tmp;
+            tmp.push_back(interval[i]);
+            tmp.push_back(thirds[2 * i]);
+            tmp.push_back(thirds[2 * i + 1]);
+            tmp.push_back(interval[i + 1]);
+            bezier.push_back(tmp);
+        }
+
+        uint32_t interp_lft = 0, interp_rht = 0;
+        for (uint32_t curr = 1; curr < interval.size(); curr++) {
+            while (interp_rht < interp_points.size() && interp_points[interp_rht] <= interval[curr].first) {
+                interp_rht++;
+            }
+            if (interp_lft == interp_rht) {
+                continue;
+            }
+            else {
+                std::vector<double> tmp;
+                for (; interp_lft < interp_rht; interp_lft++) {
+                    tmp.push_back(interp_points[interp_lft]);
+                }
+                tmp = cubic_bezier(bezier[curr-1], tmp);
+                for (double a : tmp) {
+                    ret.push_back(a);
+                }
+            }
         }
         return ret;
     }

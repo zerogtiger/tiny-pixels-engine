@@ -154,6 +154,7 @@ struct Image {
                         Adjustment highlight);
 
     Image& rotate(double origin_x, double origin_y, double angle, TwoDimInterp method = TwoDimInterp::Bilinear, Color fill = Color(0, 0, 0));
+
 };
 
 #endif
