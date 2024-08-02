@@ -37,7 +37,7 @@ struct Image {
     uint8_t get(uint32_t row, uint32_t col, uint32_t channel = 0) ;
     uint8_t get_or_default(uint32_t row, uint32_t col, uint32_t channel = 0, uint8_t fallback = 0) ;
     Color get_color(uint32_t row, uint32_t col);
-    Color get_color_or_default(uint32_t row, uint32_t col, Color fallback = Color(0, 0, 0)) ;
+    Color get_color_or_default(int row, int col, Color fallback = Color(0, 0, 0)) ;
 
     bool set(uint32_t row, uint32_t col, uint32_t channel, uint8_t val) {
         if (row >= h || col >= w) {

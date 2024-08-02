@@ -36,7 +36,7 @@ Image::Image(int w, int h, int channels)
     : w(w), h(h), channels(channels) // initializer list
 {
     size = w * h * channels;
-    data = new uint8_t[size]; 
+    data = new uint8_t[size];
     memset(data, 0, size);
     // all black "image"
 }
@@ -98,7 +98,7 @@ uint8_t Image::get_or_default(uint32_t row, uint32_t col, uint32_t channel, uint
     }
 }
 Color Image::get_color(uint32_t row, uint32_t col) {
-    Color ret = new Color(0, 0, 0);
+    Color ret(0, 0, 0);
     for (int i = 0; i < 3; i++) {
         ret.set(i, get(row, col, (channels < 3 ? 0 : i)));
     }
@@ -107,11 +107,9 @@ Color Image::get_color(uint32_t row, uint32_t col) {
     }
     return ret;
 }
-Color Image::get_color_or_default(uint32_t row, uint32_t col, Color fallback) {
-    Color ret = new Color(0, 0, 0);
+Color Image::get_color_or_default(int row, int col, Color fallback) {
     if (row < 0 || row >= h || col < 0 || col >= w) {
-        ret.set(fallback);
-        return ret;
+        return fallback;
     } else {
         return get_color(row, col);
     }
@@ -1366,9 +1364,9 @@ Image& Image::histogram(bool inc_lum, int channel) {
         }
         if (inc_lum && channels >= 3) {
             for (int r = 0; r <= (double)cnt_clr[3][c] * 255.0 / (double)max_cnt; r++) {
-                hist->set((255-r), c, 0, std::clamp(hist->get((255-r), c, 0) + 100, 0, 255));
-                hist->set((255-r), c, 1, std::clamp(hist->get((255-r), c, 1) + 100, 0, 255));
-                hist->set((255-r), c, 2, std::clamp(hist->get((255-r), c, 2) + 100, 0, 255));
+                hist->set((255 - r), c, 0, std::clamp(hist->get((255 - r), c, 0) + 100, 0, 255));
+                hist->set((255 - r), c, 1, std::clamp(hist->get((255 - r), c, 1) + 100, 0, 255));
+                hist->set((255 - r), c, 2, std::clamp(hist->get((255 - r), c, 2) + 100, 0, 255));
             }
         }
     }
@@ -1583,6 +1581,8 @@ Image& Image::rotate(double origin_x, double origin_y, double angle, TwoDimInter
     uint8_t* new_data = new uint8_t[w * h * size];
 
     double x_old, y_old;
+    Color ret(0, 0, 0);
+    Interpolation I;
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             x_old = (j - origin_x) * cos(-angle * M_PI / 180) - (i - origin_y) * sin(-angle * M_PI / 180) + origin_x;
@@ -1598,8 +1598,6 @@ Image& Image::rotate(double origin_x, double origin_y, double angle, TwoDimInter
                         data[((uint32_t)y_old * w + (uint32_t)x_old) * channels + cd];
                 }
             } else if (method == TwoDimInterp::Bilinear) {
-                Color ret(0, 0, 0);
-                Interpolation I;
                 if (round(x_old) <= -1 || round(x_old) > w || round(y_old) <= -1 || round(y_old) > h) {
                     for (int cd = 0; cd < fmin(4, channels); cd++) {
                         new_data[(i * w + j) * channels + cd] = fill.get(cd);

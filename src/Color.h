@@ -97,6 +97,12 @@ struct Color {
             break;
         }
     }
+    void set(double rr, double gg = 0, double bb = 0, double aa = 255) {
+        r = rr;
+        g = gg;
+        b = bb;
+        a = aa;
+    }
     void set(Color color) {
         r = color.r;
         g = color.g;
