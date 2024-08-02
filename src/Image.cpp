@@ -36,7 +36,9 @@ Image::Image(int w, int h, int channels)
     : w(w), h(h), channels(channels) // initializer list
 {
     size = w * h * channels;
-    data = new uint8_t[size]; // all black "image"
+    data = new uint8_t[size]; 
+    memset(data, 0, size);
+    // all black "image"
 }
 Image::Image(const Image& img) : Image(img.w, img.h, img.channels) { memcpy(data, img.data, img.size); }
 Image::~Image() { stbi_image_free(data); }
@@ -1327,7 +1329,7 @@ Image& Image::color_balance(Color lift, Color gamma, Color gain) {
 // Notes: channels < 3 images require testing
 Image& Image::histogram(bool inc_lum, int channel) {
     Image* hist = new Image(256, 256, 3);
-    uint32_t cnt_clr[4][256] = {{0}};
+    uint32_t cnt_clr[4][256] = {0};
     uint64_t max_cnt = 0;
     Color color(0, 0, 0);
 
@@ -1364,9 +1366,9 @@ Image& Image::histogram(bool inc_lum, int channel) {
         }
         if (inc_lum && channels >= 3) {
             for (int r = 0; r <= (double)cnt_clr[3][c] * 255.0 / (double)max_cnt; r++) {
-                hist->data[((255 - r) * 256 + c) * 3] += 100;
-                hist->data[((255 - r) * 256 + c) * 3 + 1] += 100;
-                hist->data[((255 - r) * 256 + c) * 3 + 2] += 100;
+                hist->set((255-r), c, 0, std::clamp(hist->get((255-r), c, 0) + 100, 0, 255));
+                hist->set((255-r), c, 1, std::clamp(hist->get((255-r), c, 1) + 100, 0, 255));
+                hist->set((255-r), c, 2, std::clamp(hist->get((255-r), c, 2) + 100, 0, 255));
             }
         }
     }

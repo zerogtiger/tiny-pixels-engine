@@ -69,6 +69,7 @@ A C++ based image and graphics processing library implemented from scratch.
 - [x] Refactor `Adjustment`, `Color` and `Font` from `image.h`
 
 ## Medium Priority Enhancements/Bug Fixes
+- [ ] Replace retrieving and setting data with dedicated get and set functions from `Image` class
 - [ ] Test `Color::apply_adj_rgb` thoroughly for hue, saturation, value, lift, gamma, gain
 - [ ] Support separated channel images in `Image::HSV`
 - [ ] Color class HSV integration

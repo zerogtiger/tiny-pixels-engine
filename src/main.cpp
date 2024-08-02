@@ -247,12 +247,15 @@ int main(int argc, char** argv) {
 
 
     Image colorful("images/colorful.jpg");
+    Image hist = colorful.histogram(true, -1);
+    hist.write("hist.png");
+
     // Color c = colorful.get_color_or_default(-9, 10);
     // std::cout << c.r << "\n";
 
 
-    colorful.rotate(0, 0, 30);
-    colorful.write("colorful_rotate.png");
+    // colorful.rotate(0, 0, 30);
+    // colorful.write("colorful_rotate.png");
 
     // Color c(255,255, 255);
     // std::cout<< c.luminance() << "\n";
