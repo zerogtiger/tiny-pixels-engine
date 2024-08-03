@@ -1354,8 +1354,10 @@ Image& Image::color_balance(Color lift, Color gamma, Color gain) {
     }
     return *this;
 }
-// Notes: channels < 3 images require testing
-Image& Image::histogram(bool inc_lum, int channel) {
+// Notes: 
+// - channels < 3 images require testing
+// - fill only applies to for channel >= 0
+Image& Image::histogram(bool inc_lum, int channel, Color fill) {
     Image* hist = new Image(256, 256, 3);
     uint32_t cnt_clr[4][256] = {0};
     uint64_t max_cnt = 0;
@@ -1385,10 +1387,11 @@ Image& Image::histogram(bool inc_lum, int channel) {
         for (int cn = 0; cn < fmin(channels, channel < 0 ? 3.0 : 1.0); cn++) {
             for (int r = 0; r <= (double)cnt_clr[(channel < 0 ? cn : 0)][c] * 255.0 / (double)max_cnt; r++) {
                 if (channels < 3 || channel > 0) {
-                    hist->data[((255 - r) * 256 + c) * 3] = hist->data[((255 - r) * 256 + c) * 3 + 1] =
-                        hist->data[((255 - r) * 256 + c) * 3 + 2] = 155;
+                    hist->set((255 - r), c, 0, fill.r);
+                    hist->set((255 - r), c, 1, fill.g);
+                    hist->set((255 - r), c, 2, fill.b);
                 } else {
-                    hist->data[((255 - r) * 256 + c) * 3 + cn] += 155;
+                    hist->data[((255 - r) * 256 + c) * 3 + cn] += 125;
                 }
             }
         }
@@ -1404,7 +1407,7 @@ Image& Image::histogram(bool inc_lum, int channel) {
 }
 
 // Notes: channels < 3 images require testing
-Image& Image::histogram_lum() {
+Image& Image::histogram_lum(Color fill) {
     Image* hist = new Image(256, 256, 3);
     uint32_t cnt_clr[256] = {0};
     uint64_t max_cnt = 0;
@@ -1425,8 +1428,9 @@ Image& Image::histogram_lum() {
 
     for (int c = 0; c < 256; c++) {
         for (int r = 0; r <= (double)cnt_clr[c] * 255.0 / (double)max_cnt; r++) {
-            hist->data[((255 - r) * 256 + c) * 3] = hist->data[((255 - r) * 256 + c) * 3 + 1] =
-                hist->data[((255 - r) * 256 + c) * 3 + 2] = 155;
+            hist->set((255 - r), c, 0, fill.r);
+            hist->set((255 - r), c, 1, fill.g);
+            hist->set((255 - r), c, 2, fill.b);
         }
     }
     return *hist;
@@ -1646,4 +1650,94 @@ Image& Image::rotate(double origin_x, double origin_y, double angle, TwoDimInter
     delete[] data;
     data = new_data;
     return *this;
+}
+
+Image& Image::RGB_curves(OneDimInterp method, std::vector<std::pair<double, double>> control_c,
+                         std::vector<std::pair<double, double>> control_r,
+                         std::vector<std::pair<double, double>> control_g,
+                         std::vector<std::pair<double, double>> control_b) {
+
+    Interpolation I;
+
+    
+
+
+    return *this;
+}
+
+Image** Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<double, double>> control_c,
+                                  std::vector<std::pair<double, double>> control_r,
+                                  std::vector<std::pair<double, double>> control_g,
+                                  std::vector<std::pair<double, double>> control_b) {
+
+    Interpolation I;
+
+    Image& ctrl = histogram_lum();
+    Image& red = histogram(false, 0, Color(125, 0, 0));
+    Image& grn = histogram(false, 1, Color(0, 125, 0));
+    Image& blu = histogram(false, 2, Color(0, 0, 125));
+
+    std::vector<double> res, ask;
+    for (int i = 0; i < 256; i++) {
+        ask.push_back(i / 255.0);
+    }
+    if (method == OneDimInterp::Bezier) {
+        res = I.cubic_bezier(control_c, ask);
+        for (int r = 0; r < 256; r++) {
+            ctrl.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            ctrl.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            ctrl.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+        res = I.cubic_bezier(control_r, ask);
+        for (int r = 0; r < 256; r++) {
+            red.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            red.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            red.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+        res = I.cubic_bezier(control_g, ask);
+        for (int r = 0; r < 256; r++) {
+            grn.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            grn.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            grn.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+        res = I.cubic_bezier(control_b, ask);
+        for (int r = 0; r < 256; r++) {
+            blu.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            blu.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            blu.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+    }
+    else if (method == OneDimInterp::BSpline) {
+        res = I.b_spline(control_c, ask);
+        for (int r = 0; r < 256; r++) {
+            ctrl.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            ctrl.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            ctrl.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+        res = I.b_spline(control_r, ask);
+        for (int r = 0; r < 256; r++) {
+            red.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            red.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            red.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+        res = I.b_spline(control_g, ask);
+        for (int r = 0; r < 256; r++) {
+            grn.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            grn.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            grn.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+        res = I.b_spline(control_b, ask);
+        for (int r = 0; r < 256; r++) {
+            blu.set(round(255 - 255.0 * res[r]), r, 0, 255);
+            blu.set(round(255 - 255.0 * res[r]), r, 1, 255);
+            blu.set(round(255 - 255.0 * res[r]), r, 2, 255);
+        }
+    }
+    Image** ret = new Image*[4];
+    ret[0] = &ctrl;
+    ret[1] = &red;
+    ret[2] = &grn;
+    ret[3] = &blu;
+
+    return ret;
 }

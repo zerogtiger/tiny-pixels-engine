@@ -10,6 +10,7 @@
 
 struct Color {
     double r, g, b, a = 255;
+    Color() : r(0), g(0), b(0) {}
     Color(double r, double g, double b) : r(r), g(g), b(b) {}
     Color(double r, double g, double b, double a) : r(r), g(g), b(b), a(a) {}
     Color(Color* color) : r(color->r), g(color->g), b(color->b), a(color->a) {}

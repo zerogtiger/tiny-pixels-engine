@@ -240,6 +240,53 @@ void test1() {
 
 int main(int argc, char** argv) {
 
+    Image colorful("images/colorful.jpg");
+
+    std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.3, 0.0}, {0.8, 1.0}, {1.0, 1.0}};
+    Image** res = colorful.preview_RGB_curves(OneDimInterp::Bezier, points);
+    res[0]->write("images/colorful_c.png");
+    res[1]->write("images/colorful_r.png");
+    res[2]->write("images/colorful_g.png");
+    res[3]->write("images/colorful_b.png");
+    res = colorful.preview_RGB_curves(OneDimInterp::BSpline, points);
+    res[0]->write("images/colorful_c_bspline.png");
+    // Image hist_lum = colorful.histogram((uint32_t) 0);
+    // hist_lum.write("images/hist_lum.png");
+
+    // Image hue(720, 360, 3);
+    // Color c;
+    // for (int r = 0; r < hue.h; r++) {
+    //     for (int w = 0; w < hue.w; w++) {
+    //         c.hsv_to_rgb((int)round(w / 2.0 + (360 - r) + 180 + 360) % 360, 1, 1);
+    //         hue.set(r, w, 0, c.r);
+    //         hue.set(r, w, 1, c.g);
+    //         hue.set(r, w, 2, c.b);
+    //     }
+    // }
+    // hue.write("images/hue.png");
+    //
+    // Image sat(720, 360, 3);
+    // for (int r = 0; r < sat.h; r++) {
+    //     for (int w = 0; w < sat.w; w++) {
+    //         c.hsv_to_rgb(w / 2.0, (360 - r) / 360.0, 1);
+    //         sat.set(r, w, 0, c.r);
+    //         sat.set(r, w, 1, c.g);
+    //         sat.set(r, w, 2, c.b);
+    //     }
+    // }
+    // sat.write("images/sat.png");
+    //
+    // Image vlu(720, 360, 3);
+    // for (int r = 0; r < vlu.h; r++) {
+    //     for (int w = 0; w < sat.w; w++) {
+    //         c.hsv_to_rgb(w / 2.0, 1, (360 - r) / 360.0);
+    //         vlu.set(r, w, 0, c.r);
+    //         vlu.set(r, w, 1, c.g);
+    //         vlu.set(r, w, 2, c.b);
+    //     }
+    // }
+    // vlu.write("images/vlu.png");
+
     // Image bezier(200, 100, 3);
     //
     // std::vector<std::pair<double, double>> ctrl{{30, 40}, {60, 90}, {99, 90}, {120, 0}, {140, 30}, {199,
@@ -273,7 +320,7 @@ int main(int argc, char** argv) {
     // c->set(c2);
     // std::cout << c3.r << "\n";
 
-    Image colorful("images/colorful.jpg");
+    // Image colorful("images/colorful.jpg");
     // colorful.rotate(0, 0, 30);
     // Image hist = colorful.histogram(true, -1);
     // hist.write("hist.png");
@@ -318,15 +365,14 @@ int main(int argc, char** argv) {
     //                                              {0.9, Color(255, 255, 255)},
     //                                              {1.0, Color(255, 255, 255)}
     // };
-    std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 0.0, 0.0)},
-                                                 {1.0, Color(255.0, 255.0, 255.0)}};
+    // std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 0.0, 0.0)}, {1.0, Color(255.0, 255.0, 255.0)}};
     // // std::sort(points.begin(), points.end());
     // Image colorful("images/test1.jpg");
     // // colorful.translate(-100, 100, Color(255, 0, 0, 100));
     // // colorful.write("images/test1_translated.png");
-    Image bezier = colorful.preview_color_ramp(points, OneDimInterp::Bezier);
-    Image linear = colorful.preview_color_ramp(points, OneDimInterp::Linear);
-    Image bspline = colorful.preview_color_ramp(points, OneDimInterp::BSpline);
+    // Image bezier = colorful.preview_color_ramp(points, OneDimInterp::Bezier);
+    // Image linear = colorful.preview_color_ramp(points, OneDimInterp::Linear);
+    // Image bspline = colorful.preview_color_ramp(points, OneDimInterp::BSpline);
     // Image graph(256, 256, 3);
     //
     // for (int i =0; i < 256; i++) {
@@ -335,9 +381,9 @@ int main(int argc, char** argv) {
     //     graph.set(preview.get(0, i), i, 2, 255);
     // }
     // graph.write("images/color_ramp_graph.png");
-    bezier.write("images/color_ramp_preview_bezier.png");
-    linear.write("images/color_ramp_preview_linear.png");
-    bspline.write("images/color_ramp_preview_bspline.png");
+    // bezier.write("images/color_ramp_preview_bezier.png");
+    // linear.write("images/color_ramp_preview_linear.png");
+    // bspline.write("images/color_ramp_preview_bspline.png");
     // preview.f_scale(1000, 1000, false, TwoDimInterp::Bilinear);
     // preview.write("images/color_ramp_preview_scale.png");
 

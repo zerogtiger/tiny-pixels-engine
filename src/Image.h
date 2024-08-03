@@ -10,11 +10,11 @@
 #include <stdint.h>
 #include <utility>
 
-#include "lib/schrift.h"
-#include "Color.h"
 #include "Adjustment.h"
-#include "Font.h"
+#include "Color.h"
 #include "Enums.h"
+#include "Font.h"
+#include "lib/schrift.h"
 
 #define _USE_MATH_DEFINES
 
@@ -34,17 +34,16 @@ struct Image {
     bool read(const char* filename);
     bool write(const char* filename);
 
-    uint8_t get(uint32_t row, uint32_t col, uint32_t channel = 0) ;
-    uint8_t get_or_default(uint32_t row, uint32_t col, uint32_t channel = 0, uint8_t fallback = 0) ;
+    uint8_t get(uint32_t row, uint32_t col, uint32_t channel = 0);
+    uint8_t get_or_default(uint32_t row, uint32_t col, uint32_t channel = 0, uint8_t fallback = 0);
     Color get_color(uint32_t row, uint32_t col);
-    Color get_color_or_default(int row, int col, Color fallback = Color(0, 0, 0)) ;
+    Color get_color_or_default(int row, int col, Color fallback = Color(0, 0, 0));
 
     bool set(uint32_t row, uint32_t col, uint32_t channel, uint8_t val) {
         if (row >= h || col >= w) {
             return false;
-        }
-        else {
-            data[(row * w + col)*channels + channel] = val;
+        } else {
+            data[(row * w + col) * channels + channel] = val;
             return true;
         }
     }
@@ -143,8 +142,8 @@ struct Image {
 
     Image& color_balance(Color lift, Color gamma, Color gain);
 
-    Image& histogram(bool inc_lum = true, int channel = -1);
-    Image& histogram_lum();
+    Image& histogram(bool inc_lum = true, int channel = -1, Color fill = Color(125, 125, 125));
+    Image& histogram_lum(Color fill = Color(125, 125, 125));
 
     Image& HSV(double hue_delta, double saturation_delta, double value_delta);
 
@@ -153,8 +152,20 @@ struct Image {
     Image& tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone,
                         Adjustment highlight);
 
-    Image& rotate(double origin_x, double origin_y, double angle, TwoDimInterp method = TwoDimInterp::Bilinear, Color fill = Color(0, 0, 0));
+    Image& rotate(double origin_x, double origin_y, double angle, TwoDimInterp method = TwoDimInterp::Bilinear,
+                  Color fill = Color(0, 0, 0));
 
+    Image& RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
+                      std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                      std::vector<std::pair<double, double>> control_r = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                      std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                      std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
+
+    Image** preview_RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
+                               std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                               std::vector<std::pair<double, double>> control_r = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                               std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                               std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
 };
 
 #endif
