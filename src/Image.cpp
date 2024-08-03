@@ -1147,10 +1147,10 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
     // std::sort(points.begin(), points.end());
     grayscale_avg();
     std::vector<double> mapped_val[3];
-    for (int i = 0; i < 255; i++) {
-        mapped_val[0].push_back(i/255.0);
-        mapped_val[1].push_back(i/255.0);
-        mapped_val[2].push_back(i/255.0);
+    for (int i = 0; i <= 255; i++) {
+        mapped_val[0].push_back((double)i/255.0);
+        mapped_val[1].push_back((double)i/255.0);
+        mapped_val[2].push_back((double)i/255.0);
     }
     std::vector<std::pair<double, double>> control[3];
     for (std::pair<double, Color> p : points) {
@@ -1179,9 +1179,9 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
                 set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j)])));
             }
             else {
-                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j)])));
-                set(i, j, 1, (uint8_t) BYTE_BOUND(round(mapped_val[1][get(i, j)])));
-                set(i, j, 2, (uint8_t) BYTE_BOUND(round(mapped_val[2][get(i, j)])));
+                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j, 0)])));
+                set(i, j, 1, (uint8_t) BYTE_BOUND(round(mapped_val[1][get(i, j, 1)])));
+                set(i, j, 2, (uint8_t) BYTE_BOUND(round(mapped_val[2][get(i, j, 2)])));
             }
         }
     }

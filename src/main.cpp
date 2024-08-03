@@ -308,14 +308,22 @@ int main(int argc, char** argv) {
     //                                              {0.8, Color(200.0, 0.0, 100.0)},
     //                                              {1.0, Color(200.0, 0.0, 100.0)}};
     std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 0.0, 0.0)},
-                                                 {0.2, Color(0.0, 0.0, 0.0)},
+                                                 {0.5, Color(0.0, 0.0, 0.0)},
                                                  {1.0, Color(255.0, 255.0, 255.0)}};
     // // std::sort(points.begin(), points.end());
     Image colorful("images/test1.jpg");
     // // colorful.translate(-100, 100, Color(255, 0, 0, 100));
     // // colorful.write("images/test1_translated.png");
-    Image preview = colorful.preview_color_ramp(points, OneDimInterp::Linear);
-    preview.write("images/color_ramp_preview_const.png");
+    Image preview = colorful.preview_color_ramp(points, OneDimInterp::BSpline);
+    Image graph(256, 256, 3);
+
+    for (int i =0; i < 256; i++) {
+        graph.set(preview.get(0, i), i, 0, 255);
+        graph.set(preview.get(0, i), i, 1, 255);
+        graph.set(preview.get(0, i), i, 2, 255);
+    }
+    graph.write("images/color_ramp_graph.png");
+    // preview.write("images/color_ramp_preview_bspline.png");
     // preview.f_scale(1000, 1000, false, TwoDimInterp::Bilinear);
     // preview.write("images/color_ramp_preview_scale.png");
 

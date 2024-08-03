@@ -23,7 +23,7 @@ A C++ based image and graphics processing library implemented from scratch.
             - [x] Constant
             - [x] Linear
             - [ ] Bézier
-            - [ ] B-Spline
+            - [x] B-Spline
 - Filtering
     - [ ] Color reduce
         - [x] 3-bit color
@@ -64,7 +64,7 @@ A C++ based image and graphics processing library implemented from scratch.
 - Documentation (not started)
 
 ## High Priority Enhancements/Bug Fixes
-- [ ] Color ramp linear and b-spline interpolation shows weird red when using monotone control points
+- [x] Color ramp linear and b-spline interpolation shows weird red when using monotone control points
 - [ ] Replace interpolation in code with dedicated function from `Interpolation` class
 - [x] Bilinear scaling (`Image::preview_color_ramp` then scale to a large image via `Image::f_scale` with `TwoDimInterp::Biliea` as interpolation method
 - [x] Refactor `Adjustment`, `Color` and `Font` from `image.h`
