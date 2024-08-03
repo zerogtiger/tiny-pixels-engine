@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -1141,6 +1142,7 @@ Image& Image::color_reduce(bool error_diffusion) {
     return *this;
 }
 // Notes: efficiency of stuff could be improved (passing references instead of copying val of vector)
+// Notes: error checking for points
 Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method) {
     Interpolation I;
     // assuming all points are sorted
@@ -1148,11 +1150,38 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
     grayscale_avg();
     std::vector<double> mapped_val[3];
     for (int i = 0; i <= 255; i++) {
-        mapped_val[0].push_back((double)i/255.0);
-        mapped_val[1].push_back((double)i/255.0);
-        mapped_val[2].push_back((double)i/255.0);
+        mapped_val[0].push_back((double)i / 255.0);
+        mapped_val[1].push_back((double)i / 255.0);
+        mapped_val[2].push_back((double)i / 255.0);
     }
     std::vector<std::pair<double, double>> control[3];
+    if (method == OneDimInterp::BSpline) {
+        if (points[0].first != 0.0) {
+            control[0].push_back({0.0, points[0].second.get(0)});
+            control[1].push_back({0.0, points[0].second.get(1)});
+            control[2].push_back({0.0, points[0].second.get(2)});
+        }
+        if (points[points.size() - 1].first != 1.0) {
+            points.push_back({1.0, points[points.size() - 1].second});
+        }
+    } else if (method == OneDimInterp::Bezier) {
+        std::vector<std::pair<double, Color>> tmp_points;
+        if (points[0].first != 0.0) {
+            tmp_points.push_back({0.0, points[0].second});
+        } else {
+            tmp_points.push_back(points[0]);
+        }
+        if (points[points.size() - 1].first != 1.0) {
+            points.push_back({1.0, points[points.size() - 1].second});
+        }
+        for (uint32_t i = (points[0].first == 0.0 ? 1 : 0); i < points.size(); i++) {
+            double mid = (tmp_points[tmp_points.size() - 1].first + points[i].first) / 2.0;
+            tmp_points.push_back({mid, tmp_points[tmp_points.size() - 1].second});
+            tmp_points.push_back({mid, points[i].second});
+            tmp_points.push_back(points[i]);
+        }
+        points = tmp_points;
+    }
     for (std::pair<double, Color> p : points) {
         control[0].push_back({p.first, p.second.get(0)});
         control[1].push_back({p.first, p.second.get(1)});
@@ -1167,21 +1196,24 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
         mapped_val[1] = I.linear(control[1], mapped_val[1]);
         mapped_val[2] = I.linear(control[2], mapped_val[2]);
     } else if (method == OneDimInterp::BSpline) {
-        mapped_val[0] = I.b_spline(control[0], mapped_val[0], 1.0E-6);
-        mapped_val[1] = I.b_spline(control[1], mapped_val[1], 1.0E-6);
-        mapped_val[2] = I.b_spline(control[2], mapped_val[2], 1.0E-6);
+        mapped_val[0] = I.b_spline(control[0], mapped_val[0]);
+        mapped_val[1] = I.b_spline(control[1], mapped_val[1]);
+        mapped_val[2] = I.b_spline(control[2], mapped_val[2]);
+    } else if (method == OneDimInterp::Bezier) {
+        mapped_val[0] = I.cubic_bezier(control[0], mapped_val[0]);
+        mapped_val[1] = I.cubic_bezier(control[1], mapped_val[1]);
+        mapped_val[2] = I.cubic_bezier(control[2], mapped_val[2]);
     } else {
         throw std::invalid_argument("The scale method specified is not yet supported\n");
     }
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             if (channels < 3) {
-                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j)])));
-            }
-            else {
-                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j, 0)])));
-                set(i, j, 1, (uint8_t) BYTE_BOUND(round(mapped_val[1][get(i, j, 1)])));
-                set(i, j, 2, (uint8_t) BYTE_BOUND(round(mapped_val[2][get(i, j, 2)])));
+                set(i, j, 0, (uint8_t)BYTE_BOUND(round(mapped_val[0][get(i, j)])));
+            } else {
+                set(i, j, 0, (uint8_t)BYTE_BOUND(round(mapped_val[0][get(i, j, 0)])));
+                set(i, j, 1, (uint8_t)BYTE_BOUND(round(mapped_val[1][get(i, j, 1)])));
+                set(i, j, 2, (uint8_t)BYTE_BOUND(round(mapped_val[2][get(i, j, 2)])));
             }
         }
     }

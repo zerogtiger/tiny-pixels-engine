@@ -241,21 +241,29 @@ void test1() {
 int main(int argc, char** argv) {
 
     // Image bezier(200, 100, 3);
-
-    // std::vector<std::pair<double, double>> ctrl{{0, 40},  {30, 40}, {60, 90}, {99, 90}, {120, 0}, {140, 30}, {199,
-    // 40}}; std::vector<double> interp; Interpolation I; for (int i =0 ; i < 200; i++) {
+    //
+    // std::vector<std::pair<double, double>> ctrl{{30, 40}, {60, 90}, {99, 90}, {120, 0}, {140, 30}, {199,
+    // 40}};
+    // std::vector<std::pair<double, double>> ctrl{
+    //     {0, 10},   {40, 10},   {40, 80},  {60, 80},  {80, 80},
+    //                                             {80, 50},  {100, 50},  {120, 50}, {120, 70},
+    //                                                 {150, 70},
+    //                                             {180, 70}, {180, 99}, {199, 99}};
+    // std::vector<double> interp;
+    // Interpolation I;
+    // for (int i = 0; i < 200; i++) {
     //     interp.push_back(i);
     // }
-    // std::vector<double> res = I.cubic_bezier(ctrl, interp);
+    // std::vector<double> res = I.b_spline(ctrl, interp);
     //
     // for (int i = 0; i < 200; i++) {
-    //     bezier.set(round(99-res[i]), interp[i], 0, 255);
+    //     bezier.set(round(99 - res[i]), interp[i], 0, 255);
     //     std::cout << res[i] << "\n";
     // }
     // for (int i = 0; i < ctrl.size(); i++) {
-    //     bezier.set(round(99-ctrl[i].second), ctrl[i].first, 1, 255);
+    //     bezier.set(round(99 - ctrl[i].second), ctrl[i].first, 1, 255);
     // }
-
+    //
     // bezier.write("images/bezier.png");
 
     // Color c = new Color(2, 0, 0);
@@ -265,7 +273,7 @@ int main(int argc, char** argv) {
     // c->set(c2);
     // std::cout << c3.r << "\n";
 
-    // Image colorful("images/colorful.jpg");
+    Image colorful("images/colorful.jpg");
     // colorful.rotate(0, 0, 30);
     // Image hist = colorful.histogram(true, -1);
     // hist.write("hist.png");
@@ -288,7 +296,7 @@ int main(int argc, char** argv) {
     // colorful.write("images/colorful_tone_correct.png");
 
     // Image preview = colorful.preview_color_ramp(points);
-    // preview.write("images/color_ramp_false_color_f.png");
+    // preview.write("images/color_ramp_preview.png");
     // preview.false_color(true);
     // colorful.false_color(true);
     // colorful.HSV(90, 0, 0);
@@ -302,28 +310,34 @@ int main(int argc, char** argv) {
     // c.hsv_to_rgb(c.r, c.g, c.b);
     // printf("%f, %f, %f\n", c.r, c.g, c.b);
 
-    // std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 100.0, 200.0)},
-    //                                              {0.2, Color(0.0, 100.0, 200.0)},
-    //                                              {0.4, Color(100.0, 100.0, 100.0)},
-    //                                              {0.8, Color(200.0, 0.0, 100.0)},
-    //                                              {1.0, Color(200.0, 0.0, 100.0)}};
+    // std::vector<std::pair<double, Color>> points{
+    //     {0.0, Color(100.0, 100.0, 100.0)},
+    //                                              {0.2, Color(100.0, 100.0, 100.0)},
+    //                                              {0.4, Color(200.0, 200.0, 200.0)},
+    //                                              {0.8, Color(50, 50, 50)},
+    //                                              {0.9, Color(255, 255, 255)},
+    //                                              {1.0, Color(255, 255, 255)}
+    // };
     std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 0.0, 0.0)},
-                                                 {0.5, Color(0.0, 0.0, 0.0)},
                                                  {1.0, Color(255.0, 255.0, 255.0)}};
     // // std::sort(points.begin(), points.end());
-    Image colorful("images/test1.jpg");
+    // Image colorful("images/test1.jpg");
     // // colorful.translate(-100, 100, Color(255, 0, 0, 100));
     // // colorful.write("images/test1_translated.png");
-    Image preview = colorful.preview_color_ramp(points, OneDimInterp::BSpline);
-    Image graph(256, 256, 3);
-
-    for (int i =0; i < 256; i++) {
-        graph.set(preview.get(0, i), i, 0, 255);
-        graph.set(preview.get(0, i), i, 1, 255);
-        graph.set(preview.get(0, i), i, 2, 255);
-    }
-    graph.write("images/color_ramp_graph.png");
-    // preview.write("images/color_ramp_preview_bspline.png");
+    Image bezier = colorful.preview_color_ramp(points, OneDimInterp::Bezier);
+    Image linear = colorful.preview_color_ramp(points, OneDimInterp::Linear);
+    Image bspline = colorful.preview_color_ramp(points, OneDimInterp::BSpline);
+    // Image graph(256, 256, 3);
+    //
+    // for (int i =0; i < 256; i++) {
+    //     graph.set(preview.get(0, i), i, 0, 255);
+    //     graph.set(preview.get(0, i), i, 1, 255);
+    //     graph.set(preview.get(0, i), i, 2, 255);
+    // }
+    // graph.write("images/color_ramp_graph.png");
+    bezier.write("images/color_ramp_preview_bezier.png");
+    linear.write("images/color_ramp_preview_linear.png");
+    bspline.write("images/color_ramp_preview_bspline.png");
     // preview.f_scale(1000, 1000, false, TwoDimInterp::Bilinear);
     // preview.write("images/color_ramp_preview_scale.png");
 
@@ -336,7 +350,8 @@ int main(int argc, char** argv) {
     // Color c = a + b;
     // std::cout << c.a << "\n";
 
-    // colorful.color_balance(Color(0.756*255/2, 0.604*255/2, 0.409*255/2), Color(0.870*255/2, 0.371*255/2, 0.382*255/2)
+    // colorful.color_balance(Color(0.756*255/2, 0.604*255/2, 0.409*255/2), Color(0.870*255/2, 0.371*255/2,
+    // 0.382*255/2)
     //         , Color(255,255,255));
     //         // , Color(2*255, 2*255, 2*255));
     // colorful.write("images/colorful_balance.png");
@@ -372,7 +387,8 @@ int main(int argc, char** argv) {
 
     // std::sort(points.begin(), points.end());
     // for (int i = 0; i < points.size(); i++) {
-    //     printf("(%f, [%f, %f, %f]),\n", points[i].first, points[i].second.r, points[i].second.g, points[i].second.b);
+    //     printf("(%f, [%f, %f, %f]),\n", points[i].first, points[i].second.r, points[i].second.g,
+    //     points[i].second.b);
     // }
     //
     // std::cout << (std::upper_bound(points.begin(), points.end(), std::make_pair(0.0, Color(110, 110, 110))) -

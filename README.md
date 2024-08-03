@@ -19,10 +19,10 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Alpha over
         - [x] Separate colors (RGBA channels)
         - [x] Combine colors (RGBA channels)
-        - [ ] Color ramp
+        - [x] Color ramp
             - [x] Constant
             - [x] Linear
-            - [ ] Bézier
+            - [x] Bézier
             - [x] B-Spline
 - Filtering
     - [ ] Color reduce
