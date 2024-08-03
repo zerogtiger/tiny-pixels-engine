@@ -7,9 +7,6 @@
 #include <cstdlib>
 class Interpolation {
   private:
-    static double eval_quad_bezier(double t, double p0, double p1, double p2, double p3) {
-        return pow(1 - t, 3) * p0 + 3 * pow(1 - t, 2) * t * p1 + 3 * (1 - t) * pow(t, 2) * p2 + pow(t, 3) * p3;
-    }
     static double eval_cubic_bezier(double t, double p0, double p1, double p2, double p3) {
         return pow(1 - t, 3) * p0 + 3 * pow(1 - t, 2) * t * p1 + 3 * (1 - t) * pow(t, 2) * p2 + pow(t, 3) * p3;
     }
@@ -43,6 +40,41 @@ class Interpolation {
                     image.get_color_or_default(cr, fc, fill) * (cc - c) * (r - fr) +
                     image.get_color_or_default(fr, cc, fill) * (c - fc) * (cr - r) +
                     image.get_color_or_default(cr, cc, fill) * (c - fc) * (r - fr));
+        }
+        return ret;
+    }
+
+    static std::vector<double> constant(std::vector<std::pair<double, double>> points,
+                                        std::vector<double> interp_points) {
+        std::vector<double> ret;
+        int ceil_idx;
+        for (double point : interp_points) {
+            ceil_idx = std::upper_bound(points.begin(), points.end(), std::make_pair(point, -1.0)) - points.begin();
+            if (ceil_idx == 0) {
+                ret.push_back(points[0].second);
+            } else {
+                ret.push_back(points[ceil_idx - 1].second);
+            }
+        }
+        return ret;
+    }
+    // Notes: interp_points must have values in [0, 1]
+    static std::vector<double> linear(std::vector<std::pair<double, double>> points,
+                                      std::vector<double> interp_points) {
+        std::vector<double> ret;
+        int ceil_idx;
+        for (double point : interp_points) {
+            ceil_idx = std::upper_bound(points.begin(), points.end(), std::make_pair(point, -1.0)) - points.begin();
+            if (ceil_idx == 0) {
+                ret.push_back(points[0].second);
+            } else if (ceil_idx == points.size()) {
+                ret.push_back(points[ceil_idx - 1].second);
+            } else {
+                ret.push_back((point - points[ceil_idx - 1].first) * points[ceil_idx].second /
+                                  (points[ceil_idx].first - points[ceil_idx - 1].first) +
+                              (points[ceil_idx].first - point) * points[ceil_idx - 1].second /
+                                  (points[ceil_idx].first - points[ceil_idx - 1].first));
+            }
         }
         return ret;
     }

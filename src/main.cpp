@@ -1,4 +1,5 @@
 #include "Color.h"
+#include "Enums.h"
 #include "Image.h"
 #include "Interpolation.h"
 #include <algorithm>
@@ -239,27 +240,24 @@ void test1() {
 
 int main(int argc, char** argv) {
 
+    // Image bezier(200, 100, 3);
 
-    Image bezier(200, 100, 3);
+    // std::vector<std::pair<double, double>> ctrl{{0, 40},  {30, 40}, {60, 90}, {99, 90}, {120, 0}, {140, 30}, {199,
+    // 40}}; std::vector<double> interp; Interpolation I; for (int i =0 ; i < 200; i++) {
+    //     interp.push_back(i);
+    // }
+    // std::vector<double> res = I.cubic_bezier(ctrl, interp);
+    //
+    // for (int i = 0; i < 200; i++) {
+    //     bezier.set(round(99-res[i]), interp[i], 0, 255);
+    //     std::cout << res[i] << "\n";
+    // }
+    // for (int i = 0; i < ctrl.size(); i++) {
+    //     bezier.set(round(99-ctrl[i].second), ctrl[i].first, 1, 255);
+    // }
 
-    std::vector<std::pair<double, double>> ctrl{{0, 40},  {30, 40}, {60, 90}, {99, 90}, {120, 0}, {140, 30}, {199, 40}};
-    std::vector<double> interp;
-    Interpolation I;
-    for (int i =0 ; i < 200; i++) {
-        interp.push_back(i);
-    }
-    std::vector<double> res = I.cubic_bezier(ctrl, interp);
-    
-    for (int i = 0; i < 200; i++) {
-        bezier.set(round(99-res[i]), interp[i], 0, 255);
-        std::cout << res[i] << "\n";
-    }
-    for (int i = 0; i < ctrl.size(); i++) {
-        bezier.set(round(99-ctrl[i].second), ctrl[i].first, 1, 255);
-    }
+    // bezier.write("images/bezier.png");
 
-    bezier.write("images/bezier.png");
-    
     // Color c = new Color(2, 0, 0);
     // Color c2 = new Color(100, 0, 0);
     // Color c3 = c + c2;
@@ -274,7 +272,6 @@ int main(int argc, char** argv) {
 
     // Color c = colorful.get_color_or_default(-9, 10);
     // std::cout << c.r << "\n";
-
 
     // colorful.rotate(0, 0, 30);
     // colorful.write("colorful_rotate.png");
@@ -291,8 +288,8 @@ int main(int argc, char** argv) {
     // colorful.write("images/colorful_tone_correct.png");
 
     // Image preview = colorful.preview_color_ramp(points);
-    // preview.false_color(true);
     // preview.write("images/color_ramp_false_color_f.png");
+    // preview.false_color(true);
     // colorful.false_color(true);
     // colorful.HSV(90, 0, 0);
     // colorful.HSV(-90, 0, 0);
@@ -305,14 +302,20 @@ int main(int argc, char** argv) {
     // c.hsv_to_rgb(c.r, c.g, c.b);
     // printf("%f, %f, %f\n", c.r, c.g, c.b);
 
-    // std::vector<std::pair<double, Color>> points{
-    //     {0.2, Color(0, 100, 200)}, {0.4, Color(100, 100, 100)}, {0.8, Color(200, 0, 100)}};
+    // std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 100.0, 200.0)},
+    //                                              {0.2, Color(0.0, 100.0, 200.0)},
+    //                                              {0.4, Color(100.0, 100.0, 100.0)},
+    //                                              {0.8, Color(200.0, 0.0, 100.0)},
+    //                                              {1.0, Color(200.0, 0.0, 100.0)}};
+    std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 0.0, 0.0)},
+                                                 {0.2, Color(0.0, 0.0, 0.0)},
+                                                 {1.0, Color(255.0, 255.0, 255.0)}};
     // // std::sort(points.begin(), points.end());
-    // Image colorful("images/test1.jpg");
+    Image colorful("images/test1.jpg");
     // // colorful.translate(-100, 100, Color(255, 0, 0, 100));
     // // colorful.write("images/test1_translated.png");
-    // Image preview = colorful.preview_color_ramp(points);
-    // preview.write("images/color_ramp_preview.png");
+    Image preview = colorful.preview_color_ramp(points, OneDimInterp::Linear);
+    preview.write("images/color_ramp_preview_const.png");
     // preview.f_scale(1000, 1000, false, TwoDimInterp::Bilinear);
     // preview.write("images/color_ramp_preview_scale.png");
 

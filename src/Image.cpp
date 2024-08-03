@@ -1140,49 +1140,48 @@ Image& Image::color_reduce(bool error_diffusion) {
     }
     return *this;
 }
+// Notes: efficiency of stuff could be improved (passing references instead of copying val of vector)
 Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method) {
+    Interpolation I;
     // assuming all points are sorted
     // std::sort(points.begin(), points.end());
     grayscale_avg();
+    std::vector<double> mapped_val[3];
+    for (int i = 0; i < 255; i++) {
+        mapped_val[0].push_back(i/255.0);
+        mapped_val[1].push_back(i/255.0);
+        mapped_val[2].push_back(i/255.0);
+    }
+    std::vector<std::pair<double, double>> control[3];
+    for (std::pair<double, Color> p : points) {
+        control[0].push_back({p.first, p.second.get(0)});
+        control[1].push_back({p.first, p.second.get(1)});
+        control[2].push_back({p.first, p.second.get(2)});
+    }
+    if (method == OneDimInterp::Constant) {
+        mapped_val[0] = I.constant(control[0], mapped_val[0]);
+        mapped_val[1] = I.constant(control[1], mapped_val[1]);
+        mapped_val[2] = I.constant(control[2], mapped_val[2]);
+    } else if (method == OneDimInterp::Linear) {
+        mapped_val[0] = I.linear(control[0], mapped_val[0]);
+        mapped_val[1] = I.linear(control[1], mapped_val[1]);
+        mapped_val[2] = I.linear(control[2], mapped_val[2]);
+    } else if (method == OneDimInterp::BSpline) {
+        mapped_val[0] = I.b_spline(control[0], mapped_val[0], 1.0E-6);
+        mapped_val[1] = I.b_spline(control[1], mapped_val[1], 1.0E-6);
+        mapped_val[2] = I.b_spline(control[2], mapped_val[2], 1.0E-6);
+    } else {
+        throw std::invalid_argument("The scale method specified is not yet supported\n");
+    }
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            int ceil_idx =
-                std::upper_bound(points.begin(), points.end(),
-                                 std::make_pair((double)data[(i * w + j) * channels] / 255, Color(-1, -1, -1))) -
-                points.begin();
-            if (ceil_idx == 0 && (method == OneDimInterp::Constant || method == OneDimInterp::Linear)) {
-                if (channels < 3) {
-                    data[(i * w + j) * channels] = points[0].second.luminance();
-                } else {
-                    for (int clr = 0; clr < 3; clr++) {
-                        data[(i * w + j) * channels + clr] = points[0].second.get(clr);
-                    }
-                }
-            } else if (method == OneDimInterp::Constant ||
-                       (method == OneDimInterp::Linear && ceil_idx == points.size())) {
-                if (channels < 3) {
-                    data[(i * w + j) * channels] = points[ceil_idx - 1].second.luminance();
-                } else {
-                    for (int clr = 0; clr < 3; clr++) {
-                        data[(i * w + j) * channels + clr] = points[ceil_idx - 1].second.get(clr);
-                    }
-                }
-            } else if (method == OneDimInterp::Linear) {
-                std::pair<double, Color> x1 = points[ceil_idx - 1], x2 = points[ceil_idx];
-                double x = (double)data[(i * w + j) * channels] / 255.0;
-                if (channels < 3) {
-                    data[(i * w + j) * channels] = (x - x1.first) / (x2.first - x1.first) * x2.second.luminance() +
-                                                   (x2.first - x) / (x2.first - x1.first) * x1.second.luminance();
-                } else {
-                    for (int clr = 0; clr < 3; clr++) {
-                        x = (double)data[(i * w + j) * channels + clr] / 255.0;
-                        data[(i * w + j) * channels + clr] =
-                            (x - x1.first) / (x2.first - x1.first) * x2.second.get(clr) +
-                            (x2.first - x) / (x2.first - x1.first) * x1.second.get(clr);
-                    }
-                }
-            } else {
-                throw std::invalid_argument("The scale method specified is not yet supported\n");
+            if (channels < 3) {
+                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j)])));
+            }
+            else {
+                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j)])));
+                set(i, j, 1, (uint8_t) BYTE_BOUND(round(mapped_val[1][get(i, j)])));
+                set(i, j, 2, (uint8_t) BYTE_BOUND(round(mapped_val[2][get(i, j)])));
             }
         }
     }
