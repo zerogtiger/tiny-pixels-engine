@@ -240,25 +240,25 @@ void test1() {
 int main(int argc, char** argv) {
 
 
-    Image bezier(100, 100, 3);
+    Image bezier(200, 100, 3);
 
-    std::vector<std::pair<double, double>> ctrl{{0, 40},  {20, 80}, {60, 90}, {80, 20}, {99, 50}};
+    std::vector<std::pair<double, double>> ctrl{{0, 40},  {30, 40}, {60, 90}, {99, 90}, {120, 0}, {140, 30}, {199, 40}};
     std::vector<double> interp;
     Interpolation I;
-    for (int i =0 ; i < 100; i++) {
+    for (int i =0 ; i < 200; i++) {
         interp.push_back(i);
     }
-    std::vector<double> res = I.b_spline(ctrl, interp);
+    std::vector<double> res = I.cubic_bezier(ctrl, interp);
     
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 200; i++) {
         bezier.set(round(99-res[i]), interp[i], 0, 255);
         std::cout << res[i] << "\n";
     }
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < ctrl.size(); i++) {
         bezier.set(round(99-ctrl[i].second), ctrl[i].first, 1, 255);
     }
 
-    bezier.write("images/b_spline.png");
+    bezier.write("images/bezier.png");
     
     // Color c = new Color(2, 0, 0);
     // Color c2 = new Color(100, 0, 0);

@@ -48,8 +48,8 @@ class Interpolation {
     }
 
     // Notes: assuming control_points is sorted in the order it wish to be interpolated
-    static std::vector<double> cubic_bezier(std::vector<std::pair<double, double>> control_points,
-                                            std::vector<double> interp_points, double error_bound = 0.0001) {
+    static std::vector<double> single_cubic_bezier(std::vector<std::pair<double, double>> control_points,
+                                                   std::vector<double> interp_points, double error_bound = 0.0001) {
         std::vector<double> ret;
         double l = 0, r = 1, mid, rslt;
         for (double x : interp_points) {
@@ -73,12 +73,41 @@ class Interpolation {
         }
         return ret;
     }
+    // Notes: no error handling for handles%3 != 1 cases
+    static std::vector<double> cubic_bezier(std::vector<std::pair<double, double>> handles,
+                                            std::vector<double> interp_points, double error_bound = 0.0001) {
+        std::vector<double> ret;
+        std::vector<double> tmp;
+
+        uint32_t interp_lft = 0, interp_rht = 0;
+        for (int i = 3; i < handles.size(); i += 3) {
+            while (interp_rht < interp_points.size() && interp_points[interp_rht] <= handles[i].first) {
+                interp_rht++;
+            }
+            if (interp_rht == interp_lft) {
+                continue;
+            } else {
+                tmp.clear();
+                for (; interp_lft < interp_rht; interp_lft++) {
+                    tmp.push_back(interp_points[interp_lft]);
+                }
+                tmp = single_cubic_bezier(
+                    std::vector<std::pair<double, double>>{handles[i - 3], handles[i - 2], handles[i - 1], handles[i]},
+                    tmp, error_bound);
+                for (double a : tmp) {
+                    ret.push_back(a);
+                }
+            }
+        }
+        return ret;
+    }
     static std::vector<double> b_spline(std::vector<std::pair<double, double>> control_points,
                                         std::vector<double> interp_points, double error_bound = 0.0001) {
         std::vector<double> ret;
         std::vector<std::pair<double, double>> thirds;
         std::vector<std::vector<std::pair<double, double>>> bezier;
         std::vector<std::pair<double, double>> interval;
+        std::vector<double> tmp;
 
         std::pair<double, double> l_third, r_third;
         for (int i = 0; i < control_points.size() - 1; i++) {
@@ -110,18 +139,17 @@ class Interpolation {
 
         uint32_t interp_lft = 0, interp_rht = 0;
         for (uint32_t curr = 1; curr < interval.size(); curr++) {
+            tmp.clear();
             while (interp_rht < interp_points.size() && interp_points[interp_rht] <= interval[curr].first) {
                 interp_rht++;
             }
             if (interp_lft == interp_rht) {
                 continue;
-            }
-            else {
-                std::vector<double> tmp;
+            } else {
                 for (; interp_lft < interp_rht; interp_lft++) {
                     tmp.push_back(interp_points[interp_lft]);
                 }
-                tmp = cubic_bezier(bezier[curr-1], tmp);
+                tmp = single_cubic_bezier(bezier[curr - 1], tmp, error_bound);
                 for (double a : tmp) {
                     ret.push_back(a);
                 }
