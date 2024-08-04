@@ -165,11 +165,11 @@ struct Image {
                               std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
                               std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
 
-    Image* hue_correct(std::vector<std::pair<double, double>> control_h = {{0, 0}},
-                       std::vector<std::pair<double, double>> control_s = {{0, 0}},
-                       std::vector<std::pair<double, double>> control_v = {{0, 0}});
+    Image& hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 0}, {181, 0}},
+                       std::vector<std::pair<double, double>> control_s = {{179, 0}, {180, 0}, {181, 0}},
+                       std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
 
-    Image* preview_hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 1}, {181, 0}},
+    Image* preview_hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 0}, {181, 0}},
                                std::vector<std::pair<double, double>> control_s = {{179, 0}, {180, 0}, {181, 0}},
                                std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
 };

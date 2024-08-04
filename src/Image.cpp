@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <set>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -1844,13 +1843,68 @@ Image* Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<doub
 
     return ret;
 }
-Image* Image::hue_correct(std::vector<std::pair<double, double>> control_h,
+// Notes: controls should have elements of the form {[0, 360), [-1, 1]}
+Image& Image::hue_correct(std::vector<std::pair<double, double>> control_h,
                           std::vector<std::pair<double, double>> control_s,
                           std::vector<std::pair<double, double>> control_v) {
+    Interpolation I;
+    Color clr;
+    std::vector<double> ask, delta[3];
+    for (int i = 0; i < 360; i++) {
+        ask.push_back((double)i);
+    }
+    control_h.insert(control_h.begin(), control_h[control_h.size() - 1]);
+    control_s.insert(control_s.begin(), control_s[control_s.size() - 1]);
+    control_v.insert(control_v.begin(), control_v[control_v.size() - 1]);
+    control_h[0].first = control_h[control_h.size() - 1].first - 360;
+    control_s[0].first = control_s[control_s.size() - 1].first - 360;
+    control_v[0].first = control_v[control_v.size() - 1].first - 360;
 
-    return this;
+    control_h.insert(control_h.begin(), control_h[control_h.size() - 2]);
+    control_s.insert(control_s.begin(), control_s[control_s.size() - 2]);
+    control_v.insert(control_v.begin(), control_v[control_v.size() - 2]);
+    control_h[0].first = control_h[control_h.size() - 2].first - 360;
+    control_s[0].first = control_s[control_s.size() - 2].first - 360;
+    control_v[0].first = control_v[control_v.size() - 2].first - 360;
+
+    control_h.push_back(control_h[2]);
+    control_s.push_back(control_s[2]);
+    control_v.push_back(control_v[2]);
+    control_h[control_h.size() - 1].first = control_h[2].first + 360;
+    control_s[control_s.size() - 1].first = control_s[2].first + 360;
+    control_v[control_v.size() - 1].first = control_v[2].first + 360;
+
+    control_h.push_back(control_h[3]);
+    control_s.push_back(control_s[3]);
+    control_v.push_back(control_v[3]);
+    control_h[control_h.size() - 1].first = control_h[3].first + 360;
+    control_s[control_s.size() - 1].first = control_s[3].first + 360;
+    control_v[control_v.size() - 1].first = control_v[3].first + 360;
+    delta[0] = I.cubic_bezier(control_h, ask);
+    delta[1] = I.cubic_bezier(control_s, ask);
+    delta[2] = I.cubic_bezier(control_v, ask);
+
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            clr.r = get(r, c, 0);
+            clr.g = get(r, c, 1);
+            clr.b = get(r, c, 2);
+            clr.to_hsv();
+            clr.g += delta[1][((uint32_t) round(clr.r))%360];
+            clr.b += delta[2][((uint32_t) round(clr.r))%360];
+            clr.r = clr.r + 180 * delta[0][((uint32_t) round(clr.r))%360];
+            clr.hsv_to_rgb(fmod(clr.r, 360), std::clamp(clr.g, 0.0, 1.0), std::clamp(clr.b, 0.0, 1.0));
+            set(r, c, 0, clr.r);
+            set(r, c, 1, clr.g);
+            set(r, c, 2, clr.b);
+        }
+    }
+    
+
+    return *this;
 }
 
+// Notes: controls should have elements of the form {[0, 360), [-1, 1]}
 Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control_h,
                                   std::vector<std::pair<double, double>> control_s,
                                   std::vector<std::pair<double, double>> control_v) {

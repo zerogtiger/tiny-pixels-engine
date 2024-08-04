@@ -54,6 +54,29 @@ struct Color {
         g = std::clamp(round(255 * (gt + m)), 0.0, 255.0);
         b = std::clamp(round(255 * (bt + m)), 0.0, 255.0);
     }
+    Color& to_hsv() {
+        r = r / 255.0;
+        g = g / 255.0;
+        b = b / 255.0;
+        double c_max = fmax(r, fmax(g, b)), c_min = fmin(r, fmin(g, b)), delta = c_max - c_min;
+        if (delta == 0) {
+            r = 0;
+        } else if (c_max == r) {
+            r = 60.0 * fmod(fmod(((g - b) / delta), 6) + 6, 6);
+        } else if (c_max == g) {
+            r = 60.0 * (fmod(fmod((b - r) / delta, 6) + 6, 6) + 2);
+        } else if (c_max == b) {
+            r = 60.0 * (fmod(fmod((r - g) / delta, 6) + 6, 6) + 4);
+        }
+
+        if (c_max == 0) {
+            g = 0;
+        } else {
+            g = delta / c_max;
+        }
+        b = c_max;
+        return *this;
+    }
     Color& rgb_to_hsv(double rr, double gg, double bb) {
         rr = rr / 255.0;
         gg = gg / 255.0;

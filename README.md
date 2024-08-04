@@ -5,7 +5,7 @@ A C++ based image and graphics processing library implemented from scratch.
 - Color
     - [x] Invert
     - [x] Histogram
-    - [ ] Hue correct
+    - [x] Hue correct
     - [x] Tonal correction
     - [x] Color balance (lift, gamma, gain)
     - [ ] Exposure

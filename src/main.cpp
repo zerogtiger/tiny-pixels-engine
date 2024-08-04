@@ -242,7 +242,9 @@ int main(int argc, char** argv) {
 
     Image colorful("images/colorful.jpg");
     
-    colorful.preview_hue_correct()->write("images/hue_correct.png");
+    colorful.preview_hue_correct()->write("preview_hue_correct.png");
+    colorful.hue_correct();
+    colorful.write("hue_correct.png");
 
     // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.7, 0.5}, {0.75, 0.6}, {0.8, 0.7}, {0.9, 1.0}, {1.0, 1.0}};
     // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.9, 1.0}, {1.0, 1.0}};
