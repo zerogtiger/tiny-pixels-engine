@@ -8,7 +8,8 @@ A C++ based image and graphics processing library implemented from scratch.
     - [x] Hue correct
     - [x] Tonal correction
     - [x] Color balance (lift, gamma, gain)
-    - [ ] Exposure
+    - [x] Saturation
+    - [x] Exposure
     - [x] Gamma
     - [x] HSV adjustments
     - [x] RGB curves
@@ -37,6 +38,7 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Gaussian (3x3 case implemented)
     - [ ] Anti-aliasing
     - [ ] Masking
+    - [ ] Vignette
 - Transform
     - [x] Rotate
     - [ ] Scale

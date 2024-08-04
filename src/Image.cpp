@@ -903,6 +903,41 @@ Image& Image::contrast(uint8_t channel, double contrast_delta) {
     }
     return *this;
 }
+Image& Image::saturation(int channel, double saturation_delta) {
+    Color clr;
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            clr.r = get(r, c, 0);
+            if (channel < 0) {
+                clr.g = get(r, c, 1);
+                clr.b = get(r, c, 2);
+            } else {
+                clr.g = 0;
+                clr.b = 0;
+            }
+            clr.to_hsv();
+            clr.g = std::clamp(clr.g + saturation_delta, 0.0, 1.0);
+            clr.hsv_to_rgb(clr.r, clr.g, clr.b);
+            set(r, c, 0, clr.r);
+            set(r, c, 1, clr.g);
+            set(r, c, 2, clr.b);
+        }
+    }
+    return *this;
+}
+
+// Notes: exposure = 0 for neutral
+Image& Image::exposure(double exposure) {
+    double mult = pow(2.0, exposure / 2.2);
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            set(r, c, 0, std::clamp(get(r, c, 0) * mult, 0.0, 255.0));
+            set(r, c, 1, std::clamp(get(r, c, 1) * mult, 0.0, 255.0));
+            set(r, c, 2, std::clamp(get(r, c, 2) * mult, 0.0, 255.0));
+        }
+    }
+    return *this;
+}
 Image& Image::shade_h() {
     double gaussian_blur[] = {1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0};
     double scharr_y[] = {47, 162, 47, 0, 0, 0, -47, -162, -47};
@@ -1890,16 +1925,15 @@ Image& Image::hue_correct(std::vector<std::pair<double, double>> control_h,
             clr.g = get(r, c, 1);
             clr.b = get(r, c, 2);
             clr.to_hsv();
-            clr.g += delta[1][((uint32_t) round(clr.r))%360];
-            clr.b += delta[2][((uint32_t) round(clr.r))%360];
-            clr.r = clr.r + 180 * delta[0][((uint32_t) round(clr.r))%360];
+            clr.g += delta[1][((uint32_t)round(clr.r)) % 360];
+            clr.b += delta[2][((uint32_t)round(clr.r)) % 360];
+            clr.r = clr.r + 180 * delta[0][((uint32_t)round(clr.r)) % 360];
             clr.hsv_to_rgb(fmod(clr.r, 360), std::clamp(clr.g, 0.0, 1.0), std::clamp(clr.b, 0.0, 1.0));
             set(r, c, 0, clr.r);
             set(r, c, 1, clr.g);
             set(r, c, 2, clr.b);
         }
     }
-    
 
     return *this;
 }

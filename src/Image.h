@@ -112,7 +112,9 @@ struct Image {
 
     Image& brightness(uint8_t channel, double brightness_delta);
     Image& contrast(uint8_t channel, double contrast_delta);
-    Image& saturation(uint8_t channel, double contrast_delta);
+    // unimplemented
+    Image& saturation(int channel, double saturation_delta);
+    Image& exposure(double exposure);
 
     Image& shade_h();
     Image& shade_v();
@@ -121,7 +123,7 @@ struct Image {
 
     Image& f_scale(uint32_t new_w, uint32_t new_h, bool linked = false, TwoDimInterp method = TwoDimInterp::Nearest);
     Image& translate(int x, int y, Color fill = Color(0, 0, 0, 255));
-    Image& rotate(double degrees); // unimplemented
+    Image& rotate(double degrees);
 
     Image& invert_color(uint8_t channel);
     Image& gamma(uint8_t channel, double gamma_delta);
