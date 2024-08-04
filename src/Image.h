@@ -35,18 +35,15 @@ struct Image {
     bool write(const char* filename);
 
     uint8_t get(uint32_t row, uint32_t col, uint32_t channel = 0);
-    uint8_t get_or_default(uint32_t row, uint32_t col, uint32_t channel = 0, uint8_t fallback = 0);
+    uint8_t get_or_default(int row, int col, uint32_t channel = 0, uint8_t fallback = 0);
+    uint8_t get_offset(int row, int col, uint32_t offset_r, uint32_t offset_c, uint32_t channel = 0);
+    uint8_t get_offset_or_default(int row, int col, uint32_t offset_r, uint32_t offset_c, uint32_t channel = 0,
+                                  uint8_t fallback = 0);
     Color get_color(uint32_t row, uint32_t col);
     Color get_color_or_default(int row, int col, Color fallback = Color(0, 0, 0));
 
-    bool set(uint32_t row, uint32_t col, uint32_t channel, uint8_t val) {
-        if (row >= h || col >= w) {
-            return false;
-        } else {
-            data[(row * w + col) * channels + channel] = val;
-            return true;
-        }
-    }
+    bool set(uint32_t row, uint32_t col, uint32_t channel, uint8_t val);
+    bool set_offset(int row, int col, uint32_t offset_r, uint32_t offset_c, uint32_t channel, uint8_t val);
 
     ImageType getFileType(const char* filename);
 
@@ -162,11 +159,11 @@ struct Image {
                       std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
                       std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
 
-    Image** preview_RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
-                               std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
-                               std::vector<std::pair<double, double>> control_r = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
-                               std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
-                               std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
+    Image* preview_RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
+                              std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                              std::vector<std::pair<double, double>> control_r = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                              std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                              std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
 };
 
 #endif

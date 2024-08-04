@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -89,11 +90,41 @@ ImageType Image::getFileType(const char* filename) {
 }
 
 uint8_t Image::get(uint32_t row, uint32_t col, uint32_t channel) { return data[(row * w + col) * channels + channel]; }
-uint8_t Image::get_or_default(uint32_t row, uint32_t col, uint32_t channel, uint8_t fallback) {
+uint8_t Image::get_or_default(int row, int col, uint32_t channel, uint8_t fallback) {
     if (row < 0 || row >= w || col < 0 || col >= h) {
         return fallback;
     } else {
         return get(row, col, channel);
+    }
+}
+uint8_t Image::get_offset(int row, int col, uint32_t offset_r, uint32_t offset_c, uint32_t channel) {
+
+    offset_r = offset_r + row;
+    offset_c = offset_c + col;
+
+    return get(offset_r, offset_c, channel);
+}
+uint8_t Image::get_offset_or_default(int row, int col, uint32_t offset_r, uint32_t offset_c, uint32_t channel,
+                                     uint8_t fallback) {
+    row += offset_r;
+    col += offset_c;
+
+    return get_or_default(row, col, channel, fallback);
+}
+bool Image::set(uint32_t row, uint32_t col, uint32_t channel, uint8_t val) {
+    if (row >= h || col >= w) {
+        return false;
+    } else {
+        data[(row * w + col) * channels + channel] = val;
+        return true;
+    }
+}
+bool Image::set_offset(int row, int col, uint32_t offset_r, uint32_t offset_c, uint32_t channel, uint8_t val) {
+    if (row + offset_r < 0 || row + offset_r >= h || col + offset_c < 0 || col + offset_c >= w) {
+        return false;
+    } else {
+        set(row + offset_r, col + offset_c, channel, val);
+        return true;
     }
 }
 Color Image::get_color(uint32_t row, uint32_t col) {
@@ -1716,10 +1747,10 @@ Image& Image::RGB_curves(OneDimInterp method, std::vector<std::pair<double, doub
 }
 
 // Notes: control points is pairs of {[0, 1], [0, 1]}
-Image** Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<double, double>> control_c,
-                                  std::vector<std::pair<double, double>> control_r,
-                                  std::vector<std::pair<double, double>> control_g,
-                                  std::vector<std::pair<double, double>> control_b) {
+Image* Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<double, double>> control_c,
+                                 std::vector<std::pair<double, double>> control_r,
+                                 std::vector<std::pair<double, double>> control_g,
+                                 std::vector<std::pair<double, double>> control_b) {
 
     Interpolation I;
 
@@ -1786,11 +1817,30 @@ Image** Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<dou
         throw std::invalid_argument("The interpolation method is not yet supported\n");
     }
 
-    Image** ret = new Image*[4];
-    ret[0] = &ctrl;
-    ret[1] = &red;
-    ret[2] = &grn;
-    ret[3] = &blu;
+    Image* ret = new Image(256 * 2 + 15, 256 * 2 + 15, 3);
+    for (int i = 0; i < ret->h; i++) {
+        for (int j = 0; j < ret->w; j++) {
+            ret->set(i, j, 0, 30);
+            ret->set(i, j, 1, 30);
+            ret->set(i, j, 2, 30);
+        }
+    }
+    for (int i = 0; i < 256; i++) {
+        for (int j = 0; j < 256; j++) {
+            for (int cd = 0; cd < 3; cd++) {
+                ret->set_offset(i, j, 5, 5, cd, ctrl.get(i, j, cd));
+                ret->set_offset(i, j, 5, 266, cd, red.get(i, j, cd));
+                ret->set_offset(i, j, 266, 5, cd, grn.get(i, j, cd));
+                ret->set_offset(i, j, 266, 266, cd, blu.get(i, j, cd));
+            }
+        }
+    }
+
+    // Image** ret = new Image*[4];
+    // ret[0] = &ctrl;
+    // ret[1] = &red;
+    // ret[2] = &grn;
+    // ret[3] = &blu;
 
     return ret;
 }
