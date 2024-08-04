@@ -11,7 +11,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Exposure
     - [x] Gamma
     - [x] HSV adjustments
-    - [ ] RGB curves
+    - [x] RGB curves
     - [ ] Tone map
     - [ ] White balance
     - [x] False color
@@ -38,7 +38,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Anti-aliasing
     - [ ] Masking
 - Transform
-    - [ ] Rotate
+    - [x] Rotate
     - [ ] Scale
         - [x] Nearest
         - [x] Bilinear
@@ -70,6 +70,7 @@ A C++ based image and graphics processing library implemented from scratch.
 - [x] Refactor `Adjustment`, `Color` and `Font` from `image.h`
 
 ## Medium Priority Enhancements/Bug Fixes
+- [ ] Merge preview of RGB curves to one image
 - [ ] Replace retrieving and setting data with dedicated get and set functions from `Image` class
 - [ ] Test `Color::apply_adj_rgb` thoroughly for hue, saturation, value, lift, gamma, gain
 - [ ] Support separated channel images in `Image::HSV`

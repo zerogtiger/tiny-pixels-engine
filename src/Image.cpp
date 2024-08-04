@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <random>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -1354,7 +1353,7 @@ Image& Image::color_balance(Color lift, Color gamma, Color gain) {
     }
     return *this;
 }
-// Notes: 
+// Notes:
 // - channels < 3 images require testing
 // - fill only applies to for channel >= 0
 Image& Image::histogram(bool inc_lum, int channel, Color fill) {
@@ -1422,6 +1421,31 @@ Image& Image::histogram_lum(Color fill) {
                                                                          data[(i * w + j) * channels + 1],
                                                                          data[(i * w + j) * channels + 2]))],
                                max_cnt);
+            }
+        }
+    }
+
+    for (int c = 0; c < 256; c++) {
+        for (int r = 0; r <= (double)cnt_clr[c] * 255.0 / (double)max_cnt; r++) {
+            hist->set((255 - r), c, 0, fill.r);
+            hist->set((255 - r), c, 1, fill.g);
+            hist->set((255 - r), c, 2, fill.b);
+        }
+    }
+    return *hist;
+}
+Image& Image::histogram_avg(Color fill) {
+    Image* hist = new Image(256, 256, 3);
+    uint32_t cnt_clr[256] = {0};
+    uint64_t max_cnt = 0;
+    Color color(0, 0, 0);
+
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (channels < 3) {
+                max_cnt = fmax(++cnt_clr[data[(i * w + j) * channels]], max_cnt);
+            } else {
+                max_cnt = fmax(++cnt_clr[(uint32_t)round((get(i, j, 0) + get(i, j, 1) + get(i, j, 2)) / 3.0)], max_cnt);
             }
         }
     }
@@ -1659,12 +1683,39 @@ Image& Image::RGB_curves(OneDimInterp method, std::vector<std::pair<double, doub
 
     Interpolation I;
 
-    
-
-
+    std::vector<double> delta[3], ask, tmp;
+    for (int i = 0; i < 256; i++) {
+        ask.push_back(i / 255.0);
+    }
+    if (method == OneDimInterp::Bezier) {
+        tmp = I.cubic_bezier(control_c, ask);
+        delta[0] = I.cubic_bezier(control_r, ask);
+        delta[1] = I.cubic_bezier(control_g, ask);
+        delta[2] = I.cubic_bezier(control_b, ask);
+    } else if (method == OneDimInterp::BSpline) {
+        tmp = I.b_spline(control_c, ask);
+        delta[0] = I.b_spline(control_r, ask);
+        delta[1] = I.b_spline(control_g, ask);
+        delta[2] = I.b_spline(control_b, ask);
+    } else {
+        throw std::invalid_argument("The interpolation method is not yet supported\n");
+    }
+    for (int i = 0; i < 256; i++) {
+        delta[0][i] += tmp[i] - 2.0 * i / 255.0;
+        delta[1][i] += tmp[i] - 2.0 * i / 255.0;
+        delta[2][i] += tmp[i] - 2.0 * i / 255.0;
+    }
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            set(i, j, 0, (uint8_t)BYTE_BOUND(round((double)get(i, j, 0) + 255.0 * delta[0][get(i, j, 0)])));
+            set(i, j, 1, (uint8_t)BYTE_BOUND(round((double)get(i, j, 1) + 255.0 * delta[1][get(i, j, 1)])));
+            set(i, j, 2, (uint8_t)BYTE_BOUND(round((double)get(i, j, 2) + 255.0 * delta[2][get(i, j, 2)])));
+        }
+    }
     return *this;
 }
 
+// Notes: control points is pairs of {[0, 1], [0, 1]}
 Image** Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<double, double>> control_c,
                                   std::vector<std::pair<double, double>> control_r,
                                   std::vector<std::pair<double, double>> control_g,
@@ -1706,8 +1757,7 @@ Image** Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<dou
             blu.set(round(255 - 255.0 * res[r]), r, 1, 255);
             blu.set(round(255 - 255.0 * res[r]), r, 2, 255);
         }
-    }
-    else if (method == OneDimInterp::BSpline) {
+    } else if (method == OneDimInterp::BSpline) {
         res = I.b_spline(control_c, ask);
         for (int r = 0; r < 256; r++) {
             ctrl.set(round(255 - 255.0 * res[r]), r, 0, 255);
@@ -1732,7 +1782,10 @@ Image** Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<dou
             blu.set(round(255 - 255.0 * res[r]), r, 1, 255);
             blu.set(round(255 - 255.0 * res[r]), r, 2, 255);
         }
+    } else {
+        throw std::invalid_argument("The interpolation method is not yet supported\n");
     }
+
     Image** ret = new Image*[4];
     ret[0] = &ctrl;
     ret[1] = &red;

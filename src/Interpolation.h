@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <stdexcept>
 class Interpolation {
   private:
     static double eval_cubic_bezier(double t, double p0, double p1, double p2, double p3) {
@@ -108,6 +109,9 @@ class Interpolation {
     // Notes: no error handling for handles%3 != 1 cases
     static std::vector<double> cubic_bezier(std::vector<std::pair<double, double>> handles,
                                             std::vector<double> interp_points, double error_bound = 0.0001) {
+        if (handles.size() %3 != 1) {
+            throw std::invalid_argument("Handles not able to be interpret as a bezier spline (count != 1 (mod 3)\n");
+        }
         std::vector<double> ret;
         std::vector<double> tmp;
 

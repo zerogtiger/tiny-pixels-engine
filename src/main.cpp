@@ -242,14 +242,22 @@ int main(int argc, char** argv) {
 
     Image colorful("images/colorful.jpg");
 
-    std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.3, 0.0}, {0.8, 1.0}, {1.0, 1.0}};
-    Image** res = colorful.preview_RGB_curves(OneDimInterp::Bezier, points);
+    // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.7, 0.5}, {0.75, 0.6}, {0.8, 0.7}, {0.9, 1.0}, {1.0, 1.0}};
+    std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.9, 1.0}, {1.0, 1.0}};
+    // colorful.RGB_curves(OneDimInterp::Bezier, points, points, points, points);
+
+    // segfault here
+    Image** res = colorful.preview_RGB_curves(OneDimInterp::Bezier, points, points, points);
+
+    colorful.write("colorful_rgb.png");
     res[0]->write("images/colorful_c.png");
     res[1]->write("images/colorful_r.png");
     res[2]->write("images/colorful_g.png");
     res[3]->write("images/colorful_b.png");
-    res = colorful.preview_RGB_curves(OneDimInterp::BSpline, points);
-    res[0]->write("images/colorful_c_bspline.png");
+
+    // Image** res = colorful.preview_RGB_curves(OneDimInterp::Bezier, points);
+    // res = colorful.preview_RGB_curves(OneDimInterp::BSpline, points);
+    // res[0]->write("images/colorful_c_bspline.png");
     // Image hist_lum = colorful.histogram((uint32_t) 0);
     // hist_lum.write("images/hist_lum.png");
 

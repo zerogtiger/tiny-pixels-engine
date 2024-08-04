@@ -144,6 +144,7 @@ struct Image {
 
     Image& histogram(bool inc_lum = true, int channel = -1, Color fill = Color(125, 125, 125));
     Image& histogram_lum(Color fill = Color(125, 125, 125));
+    Image& histogram_avg(Color fill = Color(125, 125, 125));
 
     Image& HSV(double hue_delta, double saturation_delta, double value_delta);
 
