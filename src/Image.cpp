@@ -1844,3 +1844,102 @@ Image* Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<doub
 
     return ret;
 }
+Image* Image::hue_correct(std::vector<std::pair<double, double>> control_h,
+                          std::vector<std::pair<double, double>> control_s,
+                          std::vector<std::pair<double, double>> control_v) {
+
+    return this;
+}
+
+Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control_h,
+                                  std::vector<std::pair<double, double>> control_s,
+                                  std::vector<std::pair<double, double>> control_v) {
+    Interpolation I;
+    Image& ret = *(new Image(730, 1100, 3));
+    Color c;
+    std::vector<double> ask, res;
+    for (int i = 0; i < 720; i++) {
+        ask.push_back((double)i / 2.0);
+    }
+    control_h.insert(control_h.begin(), control_h[control_h.size() - 1]);
+    control_s.insert(control_s.begin(), control_s[control_s.size() - 1]);
+    control_v.insert(control_v.begin(), control_v[control_v.size() - 1]);
+    control_h[0].first = control_h[control_h.size() - 1].first - 360;
+    control_s[0].first = control_s[control_s.size() - 1].first - 360;
+    control_v[0].first = control_v[control_v.size() - 1].first - 360;
+
+    control_h.insert(control_h.begin(), control_h[control_h.size() - 2]);
+    control_s.insert(control_s.begin(), control_s[control_s.size() - 2]);
+    control_v.insert(control_v.begin(), control_v[control_v.size() - 2]);
+    control_h[0].first = control_h[control_h.size() - 2].first - 360;
+    control_s[0].first = control_s[control_s.size() - 2].first - 360;
+    control_v[0].first = control_v[control_v.size() - 2].first - 360;
+
+    control_h.push_back(control_h[2]);
+    control_s.push_back(control_s[2]);
+    control_v.push_back(control_v[2]);
+    control_h[control_h.size() - 1].first = control_h[2].first + 360;
+    control_s[control_s.size() - 1].first = control_s[2].first + 360;
+    control_v[control_v.size() - 1].first = control_v[2].first + 360;
+
+    control_h.push_back(control_h[3]);
+    control_s.push_back(control_s[3]);
+    control_v.push_back(control_v[3]);
+    control_h[control_h.size() - 1].first = control_h[3].first + 360;
+    control_s[control_s.size() - 1].first = control_s[3].first + 360;
+    control_v[control_v.size() - 1].first = control_v[3].first + 360;
+
+    for (int i = 0; i < ret.h; i++) {
+        for (int j = 0; j < ret.w; j++) {
+            ret.set(i, j, 0, 30);
+            ret.set(i, j, 1, 30);
+            ret.set(i, j, 2, 30);
+        }
+    }
+    res = I.cubic_bezier(control_h, ask);
+    for (int w = 0; w < 720; w++) {
+        for (int r = 0; r < 360; r++) {
+            c.hsv_to_rgb((int)round(w / 2.0 + (360 - r) + 180 + 360) % 360, 1, 1);
+            ret.set_offset(r, w, 5, 5, 0, c.r);
+            ret.set_offset(r, w, 5, 5, 1, c.g);
+            ret.set_offset(r, w, 5, 5, 2, c.b);
+        }
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 0,
+                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 0));
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 1,
+                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 1));
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 2,
+                       255 - ret.get_offset(36 - -(res[w] * (double)180 + 180), w, 5, 5, 2));
+    }
+    res = I.cubic_bezier(control_s, ask);
+    for (int w = 0; w < 720; w++) {
+        for (int r = 0; r < 360; r++) {
+            c.hsv_to_rgb(w / 2.0, (360 - r) / 360.0, 1);
+            ret.set_offset(r, w, 370, 5, 0, c.r);
+            ret.set_offset(r, w, 370, 5, 1, c.g);
+            ret.set_offset(r, w, 370, 5, 2, c.b);
+        }
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 0,
+                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 0));
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 1,
+                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 1));
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 2,
+                       255 - ret.get_offset(36 - -(res[w] * (double)180 + 180), w, 370, 5, 2));
+    }
+    res = I.cubic_bezier(control_v, ask);
+    for (int w = 0; w < 720; w++) {
+        for (int r = 0; r < 360; r++) {
+            c.hsv_to_rgb(w / 2.0, 1, (360 - r) / 360.0);
+            ret.set_offset(r, w, 735, 5, 0, c.r);
+            ret.set_offset(r, w, 735, 5, 1, c.g);
+            ret.set_offset(r, w, 735, 5, 2, c.b);
+        }
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 0,
+                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 0));
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 1,
+                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 1));
+        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 2,
+                       255 - ret.get_offset(36 - -(res[w] * (double)180 + 180), w, 735, 5, 2));
+    }
+    return &ret;
+}
