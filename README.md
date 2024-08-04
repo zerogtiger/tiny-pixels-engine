@@ -70,6 +70,8 @@ A C++ based image and graphics processing library implemented from scratch.
 - [x] Refactor `Adjustment`, `Color` and `Font` from `image.h`
 
 ## Medium Priority Enhancements/Bug Fixes
+- [ ] Show area instead of line in RGB curve preview
+- [ ] Show control points in RGB curve preview
 - [ ] Single channel image support for rgb curves
 - [x] Merge preview of RGB curves to one image
 - [ ] Replace retrieving and setting data with dedicated get and set functions from `Image` class
