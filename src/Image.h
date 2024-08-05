@@ -176,7 +176,5 @@ struct Image {
                                std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
 
     Image& blur(Blur method = Blur::Gaussian, int radius_x = 5, int radius_y = 5);
-
-
 };
 #endif

@@ -95,7 +95,8 @@ void test1() {
 
         if (mx == mn) {
             v = 0;
-        } else {
+        }
+        else {
             v = (g[k] - mn) / (mx - mn) > threshold ? (g[k] - mn) / (mx - mn) : 0;
         }
         s = l = v;
@@ -106,7 +107,7 @@ void test1() {
         GT.data[k * 3] = c.r;
         GT.data[k * 3 + 1] = c.g;
         GT.data[k * 3 + 2] = c.b;
-        G.data[k] = (uint8_t)(255 * v);
+        G.data[k] = (uint8_t) (255 * v);
     }
 
     G.write("images/G.png");
@@ -250,13 +251,13 @@ int main(int argc, char** argv) {
     // colorful.blur(Blur::Gaussian, 400, 400);
     // colorful.saturation(-1, -1);
     // colorful.exposure(-1);
-    
+
     // colorful.preview_hue_correct()->write("preview_hue_correct.png");
     // colorful.hue_correct();
 
-    // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.7, 0.5}, {0.75, 0.6}, {0.8, 0.7}, {0.9, 1.0}, {1.0, 1.0}};
-    // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.9, 1.0}, {1.0, 1.0}};
-    // colorful.RGB_curves(OneDimInterp::Bezier, points, points, points, points);
+    // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.7, 0.5}, {0.75, 0.6}, {0.8, 0.7},
+    // {0.9, 1.0}, {1.0, 1.0}}; std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.9, 1.0},
+    // {1.0, 1.0}}; colorful.RGB_curves(OneDimInterp::Bezier, points, points, points, points);
 
     // segfault here
     // Image* res = colorful.preview_RGB_curves(OneDimInterp::Bezier, points, points, points);

@@ -1,8 +1,8 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include "lib/schrift.h"
 #include "Enums.h"
+#include "lib/schrift.h"
 
 struct Font {
 
@@ -15,7 +15,9 @@ struct Font {
         setSize(size);
     }
 
-    ~Font() { sft_freefont(sft.font); }
+    ~Font() {
+        sft_freefont(sft.font);
+    }
 
     void setSize(uint16_t size) {
         sft.xScale = size;

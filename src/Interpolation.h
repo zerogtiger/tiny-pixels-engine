@@ -30,13 +30,16 @@ class Interpolation {
         int fr = floor(r), cr = ceil(r), fc = floor(c), cc = ceil(c);
         if (r == fr && c == fc) {
             ret.set(image.get_color_or_default(fr, fc, fill));
-        } else if (r == fr) {
+        }
+        else if (r == fr) {
             ret.set(image.get_color_or_default(r, fc, fill) * (cc - c) +
                     image.get_color_or_default(r, c, fill) * (c - fc));
-        } else if (c == fc) {
+        }
+        else if (c == fc) {
             ret.set(image.get_color_or_default(fr, c, fill) * (cr - r) +
                     image.get_color_or_default(cr, c, fill) * (r - fr));
-        } else {
+        }
+        else {
             ret.set(image.get_color_or_default(fr, fc, fill) * (cc - c) * (cr - r) +
                     image.get_color_or_default(cr, fc, fill) * (cc - c) * (r - fr) +
                     image.get_color_or_default(fr, cc, fill) * (c - fc) * (cr - r) +
@@ -53,7 +56,8 @@ class Interpolation {
             ceil_idx = std::upper_bound(points.begin(), points.end(), std::make_pair(point, -1.0)) - points.begin();
             if (ceil_idx == 0) {
                 ret.push_back(points[0].second);
-            } else {
+            }
+            else {
                 ret.push_back(points[ceil_idx - 1].second);
             }
         }
@@ -68,9 +72,11 @@ class Interpolation {
             ceil_idx = std::upper_bound(points.begin(), points.end(), std::make_pair(point, -1.0)) - points.begin();
             if (ceil_idx == 0) {
                 ret.push_back(points[0].second);
-            } else if (ceil_idx == points.size()) {
+            }
+            else if (ceil_idx == points.size()) {
                 ret.push_back(points[ceil_idx - 1].second);
-            } else {
+            }
+            else {
                 ret.push_back((point - points[ceil_idx - 1].first) * points[ceil_idx].second /
                                   (points[ceil_idx].first - points[ceil_idx - 1].first) +
                               (points[ceil_idx].first - point) * points[ceil_idx - 1].second /
@@ -94,9 +100,11 @@ class Interpolation {
                                          control_points[3].first);
                 if (abs(x - rslt) < error_bound) {
                     break;
-                } else if (rslt < x) {
+                }
+                else if (rslt < x) {
                     l = mid;
-                } else {
+                }
+                else {
                     r = mid;
                 }
             }
@@ -109,7 +117,7 @@ class Interpolation {
     // Notes: no error handling for handles%3 != 1 cases
     static std::vector<double> cubic_bezier(std::vector<std::pair<double, double>> handles,
                                             std::vector<double> interp_points, double error_bound = 0.0001) {
-        if (handles.size() %3 != 1) {
+        if (handles.size() % 3 != 1) {
             throw std::invalid_argument("Handles not able to be interpret as a bezier spline (count != 1 (mod 3))\n");
         }
         std::vector<double> ret;
@@ -122,7 +130,8 @@ class Interpolation {
             }
             if (interp_rht == interp_lft) {
                 continue;
-            } else {
+            }
+            else {
                 tmp.clear();
                 for (; interp_lft < interp_rht; interp_lft++) {
                     tmp.push_back(interp_points[interp_lft]);
@@ -181,7 +190,8 @@ class Interpolation {
             }
             if (interp_lft == interp_rht) {
                 continue;
-            } else {
+            }
+            else {
                 for (; interp_lft < interp_rht; interp_lft++) {
                     tmp.push_back(interp_points[interp_lft]);
                 }

@@ -27,7 +27,8 @@ Image::Image(const char* filename) {
     if (read(filename)) {
         printf("Read %s\n", filename);
         size = w * h * channels;
-    } else {
+    }
+    else {
         printf("Failed to read %s\n", filename);
     }
 }
@@ -39,15 +40,20 @@ Image::Image(int w, int h, int channels)
     memset(data, 0, size);
     // all black "image"
 }
-Image::Image(const Image& img) : Image(img.w, img.h, img.channels) { memcpy(data, img.data, img.size); }
-Image::~Image() { stbi_image_free(data); }
+Image::Image(const Image& img) : Image(img.w, img.h, img.channels) {
+    memcpy(data, img.data, img.size);
+}
+Image::~Image() {
+    stbi_image_free(data);
+}
 
 bool Image::read(const char* filename) {
     struct stat buffer;
     if (stat(filename, &buffer) == 0) {
         data = stbi_load(filename, &w, &h, &channels, 0);
         return data != NULL;
-    } else {
+    }
+    else {
         throw std::invalid_argument(std::string{"Unable to find file "} + filename);
         return false;
     }
@@ -77,22 +83,28 @@ ImageType Image::getFileType(const char* filename) {
     if (ext != nullptr) {
         if (strcmp(ext, ".png") == 0) {
             return ImageType::PNG;
-        } else if (strcmp(ext, ".jpg") == 0) {
+        }
+        else if (strcmp(ext, ".jpg") == 0) {
             return ImageType::JPG;
-        } else if (strcmp(ext, ".BMP") == 0) {
+        }
+        else if (strcmp(ext, ".BMP") == 0) {
             return ImageType::BMP;
-        } else if (strcmp(ext, ".tga") == 0) {
+        }
+        else if (strcmp(ext, ".tga") == 0) {
             return ImageType::TGA;
         }
     }
     return PNG;
 }
 
-uint8_t Image::get(uint32_t row, uint32_t col, uint32_t channel) { return data[(row * w + col) * channels + channel]; }
+uint8_t Image::get(uint32_t row, uint32_t col, uint32_t channel) {
+    return data[(row * w + col) * channels + channel];
+}
 uint8_t Image::get_or_default(int row, int col, uint32_t channel, uint8_t fallback) {
     if (row < 0 || row >= w || col < 0 || col >= h) {
         return fallback;
-    } else {
+    }
+    else {
         return get(row, col, channel);
     }
 }
@@ -113,7 +125,8 @@ uint8_t Image::get_offset_or_default(int row, int col, uint32_t offset_r, uint32
 bool Image::set(uint32_t row, uint32_t col, uint32_t channel, uint8_t val) {
     if (row >= h || col >= w) {
         return false;
-    } else {
+    }
+    else {
         data[(row * w + col) * channels + channel] = val;
         return true;
     }
@@ -121,7 +134,8 @@ bool Image::set(uint32_t row, uint32_t col, uint32_t channel, uint8_t val) {
 bool Image::set_offset(int row, int col, uint32_t offset_r, uint32_t offset_c, uint32_t channel, uint8_t val) {
     if (row + offset_r < 0 || row + offset_r >= h || col + offset_c < 0 || col + offset_c >= w) {
         return false;
-    } else {
+    }
+    else {
         set(row + offset_r, col + offset_c, channel, val);
         return true;
     }
@@ -139,7 +153,8 @@ Color Image::get_color(uint32_t row, uint32_t col) {
 Color Image::get_color_or_default(int row, int col, Color fallback) {
     if (row < 0 || row >= h || col < 0 || col >= w) {
         return fallback;
-    } else {
+    }
+    else {
         return get_color(row, col);
     }
 }
@@ -149,7 +164,8 @@ Image& Image::grayscale_avg() {
         printf("Image %p has less than 3 channels, assumed to already be "
                "grayscale",
                this);
-    } else {
+    }
+    else {
         for (int i = 0; i < size; i += channels) {
             int gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
             memset(data + i, gray, 3);
@@ -162,7 +178,8 @@ Image& Image::grayscale_lum() {
         printf("Image %p has less than 3 channels, assumed to already be "
                "grayscale",
                this);
-    } else {
+    }
+    else {
         for (int i = 0; i < size; i += channels) {
             int gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
             memset(data + i, gray, 3);
@@ -175,7 +192,8 @@ Image& Image::color_mask(float r, float g, float b) {
         printf("\e[31m[ERROR] Color mask requries at least 3 channels, but "
                "this image has %d channels \e[0m\n",
                channels);
-    } else {
+    }
+    else {
         for (int i = 0; i < size; i += channels) {
             data[i] *= r;
             data[i + 1] *= g;
@@ -263,17 +281,17 @@ Image& Image::std_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32
     uint64_t center = cr * ker_w + cc;
     for (uint64_t k = channel; k < size; k += channels) {
         double c = 0;
-        for (long i = -((long)cr); i < (long)ker_h - cr; ++i) {
-            long row = ((long)k / channels) / w - i;
+        for (long i = -((long) cr); i < (long) ker_h - cr; ++i) {
+            long row = ((long) k / channels) / w - i;
             if (row < 0 || row > h - 1) {
                 continue;
             }
-            for (long j = -((long)cc); j < (long)ker_w - cc; ++j) {
-                long col = ((long)k / channels) % w - j;
+            for (long j = -((long) cc); j < (long) ker_w - cc; ++j) {
+                long col = ((long) k / channels) % w - j;
                 if (col < 0 || col > w - 1) {
                     continue;
                 }
-                c += ker[center + i * (long)ker_w + j] * data[(row * w + col) * channels + channel];
+                c += ker[center + i * (long) ker_w + j] * data[(row * w + col) * channels + channel];
             }
         }
         new_data[k / channels] = c;
@@ -290,7 +308,7 @@ Image& Image::std_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32
     }
 
     for (uint64_t k = channel; k < size; k += channels) {
-        data[k] = (uint8_t)BYTE_BOUND(round(new_data[k / channels]));
+        data[k] = (uint8_t) BYTE_BOUND(round(new_data[k / channels]));
     }
     return *this;
 }
@@ -301,21 +319,23 @@ Image& Image::std_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint
     uint64_t center = cr * ker_w + cc;
     for (uint64_t k = channel; k < size; k += channels) {
         double c = 0;
-        for (long i = -((long)cr); i < (long)ker_h - cr; i++) {
-            long row = ((long)k / channels) / w - i;
+        for (long i = -((long) cr); i < (long) ker_h - cr; i++) {
+            long row = ((long) k / channels) / w - i;
             if (row < 0) {
                 row = 0;
-            } else if (row > h - 1) {
+            }
+            else if (row > h - 1) {
                 row = h - 1;
             }
-            for (long j = -((long)cc); j < (long)ker_w - cc; j++) {
-                long col = ((long)k / channels) % w - j;
+            for (long j = -((long) cc); j < (long) ker_w - cc; j++) {
+                long col = ((long) k / channels) % w - j;
                 if (col < 0) {
                     col = 0;
-                } else if (col > w - 1) {
+                }
+                else if (col > w - 1) {
                     col = w - 1;
                 }
-                c += ker[center + i * (long)ker_w + j] * data[(row * w + col) * channels + channel];
+                c += ker[center + i * (long) ker_w + j] * data[(row * w + col) * channels + channel];
             }
         }
         new_data[k / channels] = c;
@@ -332,7 +352,7 @@ Image& Image::std_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint
     }
 
     for (uint64_t k = channel; k < size; k += channels) {
-        data[k] = (uint8_t)BYTE_BOUND(round(new_data[k / channels]));
+        data[k] = (uint8_t) BYTE_BOUND(round(new_data[k / channels]));
     }
     return *this;
 }
@@ -343,21 +363,23 @@ Image& Image::std_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_
     uint64_t center = cr * ker_w + cc;
     for (uint64_t k = channel; k < size; k += channels) {
         double c = 0;
-        for (long i = -((long)cr); i < (long)ker_h - cr; i++) {
-            long row = ((long)k / channels) / w - i;
+        for (long i = -((long) cr); i < (long) ker_h - cr; i++) {
+            long row = ((long) k / channels) / w - i;
             if (row < 0) {
                 row = row % h + h;
-            } else if (row > h - 1) {
+            }
+            else if (row > h - 1) {
                 row %= h;
             }
-            for (long j = -((long)cc); j < (long)ker_w - cc; j++) {
-                long col = ((long)k / channels) % w - j;
+            for (long j = -((long) cc); j < (long) ker_w - cc; j++) {
+                long col = ((long) k / channels) % w - j;
                 if (col < 0) {
                     col = col % w + w;
-                } else if (col > w - 1) {
+                }
+                else if (col > w - 1) {
                     col %= w;
                 }
-                c += ker[center + i * (long)ker_w + j] * data[(row * w + col) * channels + channel];
+                c += ker[center + i * (long) ker_w + j] * data[(row * w + col) * channels + channel];
             }
         }
         new_data[k / channels] = c;
@@ -374,7 +396,7 @@ Image& Image::std_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_
     }
 
     for (uint64_t k = channel; k < size; k += channels) {
-        data[k] = (uint8_t)BYTE_BOUND(round(new_data[k / channels]));
+        data[k] = (uint8_t) BYTE_BOUND(round(new_data[k / channels]));
     }
     return *this;
 }
@@ -411,13 +433,15 @@ Image& Image::overlay(const Image& src, int x, int y) {
     for (int sy = 0; sy < src.h; ++sy) {
         if (sy + y < 0) {
             continue;
-        } else if (sy + y >= h) {
+        }
+        else if (sy + y >= h) {
             break;
         }
         for (int sx = 0; sx < src.w; ++sx) {
             if (sx + x < 0) {
                 continue;
-            } else if (sx + x >= w) {
+            }
+            else if (sx + x >= w) {
                 break;
             }
             srcPx = &src.data[(sx + sy * src.w) * src.channels];
@@ -432,18 +456,20 @@ Image& Image::overlay(const Image& src, int x, int y) {
                 else
                     memset(dstPx, srcPx[0],
                            channels); // requires fix for src with k>=2 channels and dest with n>k
-            } else {
+            }
+            else {
                 float outAlpha = srcAlpha + dstAlpha * (1 - srcAlpha);
                 if (outAlpha < .01) {
                     memset(dstPx, 0, channels);
-                } else {
+                }
+                else {
                     for (int chnl = 0; chnl < channels; chnl++) {
-                        dstPx[chnl] = (uint8_t)BYTE_BOUND(
+                        dstPx[chnl] = (uint8_t) BYTE_BOUND(
                             (srcPx[chnl] / 255.f * srcAlpha + dstPx[chnl] / 255.f * dstAlpha * (1 - srcAlpha)) /
                             outAlpha * 255.f);
                     }
                     if (channels > 3) {
-                        dstPx[3] = (uint8_t)BYTE_BOUND(outAlpha * 255.f);
+                        dstPx[3] = (uint8_t) BYTE_BOUND(outAlpha * 255.f);
                     }
                 }
             }
@@ -484,18 +510,20 @@ Image& Image::overlay_text(const char* txt, const Font& font, int x, int y, uint
                     float dstAlpha = channels < 4 ? 1 : dstPx[3] / 255.f;
                     if (srcAlpha > .99 && dstAlpha > .99) {
                         memcpy(dstPx, color, channels); // might have different channels
-                    } else {
+                    }
+                    else {
                         float outAlpha = srcAlpha + dstAlpha * (1 - srcAlpha);
                         if (outAlpha < .01) {
                             memset(dstPx, 0, channels);
-                        } else {
+                        }
+                        else {
                             for (int chnl = 0; chnl < channels; chnl++) {
-                                dstPx[chnl] = (uint8_t)BYTE_BOUND(
+                                dstPx[chnl] = (uint8_t) BYTE_BOUND(
                                     (color[chnl] / 255.f * srcAlpha + dstPx[chnl] / 255.f * dstAlpha * (1 - srcAlpha)) /
                                     outAlpha * 255.f);
                             }
                             if (channels > 3) {
-                                dstPx[3] = (uint8_t)BYTE_BOUND(outAlpha * 255.f);
+                                dstPx[3] = (uint8_t) BYTE_BOUND(outAlpha * 255.f);
                             }
                         }
                     }
@@ -533,7 +561,7 @@ Image& Image::crop(uint16_t cx, uint16_t cy, uint16_t cw, uint16_t ch) {
 }
 
 uint32_t Image::rev(uint32_t n, uint32_t a) {
-    uint8_t max_bits = (uint8_t)ceil(log2(n));
+    uint8_t max_bits = (uint8_t) ceil(log2(n));
     uint32_t reversed_a = 0;
     for (uint8_t i = 0; i < max_bits; i++) {
         if (a & (1 << i)) {
@@ -666,9 +694,9 @@ void Image::idft_2D(uint32_t m, uint32_t n, std::complex<double> X[], std::compl
 void Image::pad_kernel(uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, uint32_t pw, uint32_t ph,
                        std::complex<double>* pad_ker) {
     // padded so center of kernal is at top left
-    for (long i = -((long)cr); i < (long)ker_h - cr; i++) {
+    for (long i = -((long) cr); i < (long) ker_h - cr; i++) {
         uint32_t r = (i < 0) ? i + ph : i;
-        for (long j = -((long)cc); j < (long)ker_w - cc; j++) {
+        for (long j = -((long) cc); j < (long) ker_w - cc; j++) {
             uint32_t c = (j < 0) ? j + pw : j;
             pad_ker[r * pw + c] = std::complex<double>(ker[(i + cr) * ker_w + (j + cc)], 0);
         }
@@ -683,8 +711,8 @@ void Image::pointwise_product(uint64_t l, std::complex<double> a[], std::complex
 std::complex<double>* Image::fd_convolve_clamp_to_zero_raw(uint8_t channel, uint32_t ker_w, uint32_t ker_h,
                                                            double ker[], uint32_t cr, uint32_t cc) {
     // calculate paddina
-    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
-    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint32_t pw = 1 << ((uint8_t) ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t) ceil(log2(h + ker_h - 1)));
     uint64_t psize = pw * ph;
 
     // pad image
@@ -709,8 +737,8 @@ std::complex<double>* Image::fd_convolve_clamp_to_zero_raw(uint8_t channel, uint
 }
 Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr,
                                         uint32_t cc, bool normalize) {
-    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
-    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint32_t pw = 1 << ((uint8_t) ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t) ceil(log2(h + ker_h - 1)));
     std::complex<double>* pad_img = fd_convolve_clamp_to_zero_raw(channel, ker_w, ker_h, ker, cr, cc);
     if (normalize) {
         double mx = -INFINITY, mn = INFINITY;
@@ -729,7 +757,7 @@ Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_
     // update pixel data
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
-            data[(i * w + j) * channels + channel] = (uint8_t)BYTE_BOUND(round(pad_img[i * pw + j].real()));
+            data[(i * w + j) * channels + channel] = (uint8_t) BYTE_BOUND(round(pad_img[i * pw + j].real()));
         }
     }
 
@@ -740,8 +768,8 @@ Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_
 std::complex<double>* Image::fd_convolve_clamp_to_border_raw(uint8_t channel, uint32_t ker_w, uint32_t ker_h,
                                                              double ker[], uint32_t cr, uint32_t cc) {
     // calculate padding
-    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
-    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint32_t pw = 1 << ((uint8_t) ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t) ceil(log2(h + ker_h - 1)));
     uint64_t psize = pw * ph;
 
     // pad image
@@ -771,8 +799,8 @@ std::complex<double>* Image::fd_convolve_clamp_to_border_raw(uint8_t channel, ui
 
 Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr,
                                           uint32_t cc, bool normalize) {
-    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
-    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint32_t pw = 1 << ((uint8_t) ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t) ceil(log2(h + ker_h - 1)));
     std::complex<double>* pad_img = fd_convolve_clamp_to_border_raw(channel, ker_w, ker_h, ker, cr, cc);
     if (normalize) {
         double mx = -INFINITY, mn = INFINITY;
@@ -791,7 +819,7 @@ Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint3
     // update pixel data
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
-            data[(i * w + j) * channels + channel] = (uint8_t)BYTE_BOUND(round(pad_img[i * pw + j].real()));
+            data[(i * w + j) * channels + channel] = (uint8_t) BYTE_BOUND(round(pad_img[i * pw + j].real()));
         }
     }
 
@@ -802,8 +830,8 @@ Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint3
 std::complex<double>* Image::fd_convolve_cyclic_raw(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[],
                                                     uint32_t cr, uint32_t cc) {
     // calculate padding
-    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
-    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint32_t pw = 1 << ((uint8_t) ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t) ceil(log2(h + ker_h - 1)));
     uint64_t psize = pw * ph;
 
     // pad image
@@ -830,8 +858,8 @@ std::complex<double>* Image::fd_convolve_cyclic_raw(uint8_t channel, uint32_t ke
 }
 Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr,
                                  uint32_t cc, bool normalize) {
-    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
-    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    uint32_t pw = 1 << ((uint8_t) ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t) ceil(log2(h + ker_h - 1)));
     std::complex<double>* pad_img = fd_convolve_cyclic_raw(channel, ker_w, ker_h, ker, cr, cc);
 
     if (normalize) {
@@ -852,7 +880,7 @@ Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h
     // update pixel data
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
-            data[(i * w + j) * channels + channel] = BYTE_BOUND((uint8_t)round(pad_img[i * pw + j].real()));
+            data[(i * w + j) * channels + channel] = BYTE_BOUND((uint8_t) round(pad_img[i * pw + j].real()));
         }
     }
 
@@ -864,7 +892,8 @@ Image& Image::convolve_linear(uint8_t channel, uint32_t ker_w, uint32_t ker_h, d
                               bool normalize) {
     if (ker_w * ker_h > 224) {
         return fd_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc, normalize);
-    } else {
+    }
+    else {
         return std_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc, normalize);
     }
 }
@@ -872,7 +901,8 @@ Image& Image::convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t
                                        uint32_t cc, bool normalize) {
     if (ker_w * ker_h > 224) {
         return fd_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc, normalize);
-    } else {
+    }
+    else {
         return std_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc, normalize);
     }
 }
@@ -880,7 +910,8 @@ Image& Image::convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, d
                               bool normalize) {
     if (ker_w * ker_h > 224) {
         return fd_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc, normalize);
-    } else {
+    }
+    else {
         return std_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc, normalize);
     }
 }
@@ -888,7 +919,7 @@ Image& Image::brightness(uint8_t channel, double brightness_delta) {
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
             data[(i * w + j) * channels + channel] =
-                (uint8_t)BYTE_BOUND(data[(i * w + j) * channels + channel] - 128 + 128 + brightness_delta);
+                (uint8_t) BYTE_BOUND(data[(i * w + j) * channels + channel] - 128 + 128 + brightness_delta);
         }
     }
     return *this;
@@ -898,7 +929,7 @@ Image& Image::contrast(uint8_t channel, double contrast_delta) {
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
             data[(i * w + j) * channels + channel] =
-                (uint8_t)BYTE_BOUND(round(F * (data[(i * w + j) * channels + channel] - 128) + 128));
+                (uint8_t) BYTE_BOUND(round(F * (data[(i * w + j) * channels + channel] - 128) + 128));
         }
     }
     return *this;
@@ -911,7 +942,8 @@ Image& Image::saturation(int channel, double saturation_delta) {
             if (channel < 0) {
                 clr.g = get(r, c, 1);
                 clr.b = get(r, c, 2);
-            } else {
+            }
+            else {
                 clr.g = 0;
                 clr.b = 0;
             }
@@ -978,7 +1010,7 @@ Image& Image::shade() {
     for (uint64_t i = 0; i < size; i += channels) {
         h = itmd_h.data[i / channels];
         v = itmd_v.data[i / channels];
-        data[i] = (uint8_t)BYTE_BOUND(sqrt(h * h + v * v));
+        data[i] = (uint8_t) BYTE_BOUND(sqrt(h * h + v * v));
         if (channels >= 3) {
             data[i + 1] = data[i + 2] = data[i];
         }
@@ -987,8 +1019,8 @@ Image& Image::shade() {
 }
 Image& Image::edge(bool gradient, double detail_threshold) {
 
-    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + 3 - 1)));
-    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + 3 - 1)));
+    uint32_t pw = 1 << ((uint8_t) ceil(log2(w + 3 - 1)));
+    uint32_t ph = 1 << ((uint8_t) ceil(log2(h + 3 - 1)));
 
     double gaussian_blur[] = {1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0};
     double scharr_x[] = {47, 0, -47, 162, 0, -162, 47, 0, -47};
@@ -1027,11 +1059,12 @@ Image& Image::edge(bool gradient, double detail_threshold) {
         for (uint64_t j = 0; j < w; j++) {
             if (mn == mx) {
                 v = 0;
-            } else {
+            }
+            else {
                 v = (g[i * w + j] - mn) / (mx - mn);
                 v = (v < detail_threshold || v > 1 ? 0 : v);
             }
-            data[(i * w + j) * channels] = (uint8_t)(255 * v);
+            data[(i * w + j) * channels] = (uint8_t) (255 * v);
         }
     }
     if (!gradient && channels >= 3) {
@@ -1040,7 +1073,8 @@ Image& Image::edge(bool gradient, double detail_threshold) {
                 data[(i * w + j) * channels + 1] = data[(i * w + j) * channels + 2] = data[(i * w + j) * channels];
             }
         }
-    } else if (gradient) {
+    }
+    else if (gradient) {
         std::cout << channels << "\n";
         Color c(0.0, 0.0, 0.0);
         for (uint64_t i = 0; i < h; i++) {
@@ -1050,9 +1084,9 @@ Image& Image::edge(bool gradient, double detail_threshold) {
                 v = (g[i * w + j] - mn) / (mx - mn);
                 v = (v < detail_threshold || v > 1 ? 0 : v);
                 c.hsv_to_rgb(h, v, v);
-                data[(i * w + j) * channels] = (uint8_t)BYTE_BOUND(round(c.r));
-                data[(i * w + j) * channels + 1] = (uint8_t)BYTE_BOUND(round(c.g));
-                data[(i * w + j) * channels + 2] = (uint8_t)BYTE_BOUND(round(c.b));
+                data[(i * w + j) * channels] = (uint8_t) BYTE_BOUND(round(c.r));
+                data[(i * w + j) * channels + 1] = (uint8_t) BYTE_BOUND(round(c.g));
+                data[(i * w + j) * channels + 2] = (uint8_t) BYTE_BOUND(round(c.b));
             }
         }
     }
@@ -1067,47 +1101,50 @@ Image& Image::edge(bool gradient, double detail_threshold) {
 Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, TwoDimInterp method) {
     printf("Channels: %d", channels);
     if (linked) {
-        new_h = (uint32_t)round(((double)h) / w * new_w);
+        new_h = (uint32_t) round(((double) h) / w * new_w);
     }
     uint8_t* new_data = new uint8_t[new_w * new_h * channels];
     double r_old, c_old;
     if (method == TwoDimInterp::Nearest) {
         for (int r = 0; r < new_h; r++) {
             for (int c = 0; c < new_w; c++) {
-                r_old = (double)r * h / new_h;
-                c_old = (double)c * w / new_w;
+                r_old = (double) r * h / new_h;
+                c_old = (double) c * w / new_w;
                 for (int cd = 0; cd < channels; cd++) {
                     new_data[(r * new_w + c) * channels + cd] =
-                        data[((uint32_t)round(r_old) * w + (uint32_t)round(c_old)) * channels + cd];
+                        data[((uint32_t) round(r_old) * w + (uint32_t) round(c_old)) * channels + cd];
                 }
             }
         }
-    } else if (method == TwoDimInterp::Bilinear) {
+    }
+    else if (method == TwoDimInterp::Bilinear) {
         double r_diff, c_diff;
         for (int r = 0; r < new_h; r++) {
             for (int c = 0; c < new_w; c++) {
-                r_old = (double)r * h / new_h;
-                c_old = (double)c * w / new_w;
+                r_old = (double) r * h / new_h;
+                c_old = (double) c * w / new_w;
                 // r_diff = r_old - floor(r_old) < ceil(r_old) - r_old ? r_old - floor(r_old) : r_old - ceil(r_old);
                 // c_diff = c_old - floor(c_old) < ceil(c_old) - c_old ? c_old - floor(c_old) : c_old - ceil(c_old);
                 for (int cd = 0; cd < channels; cd++) {
                     if ((r_old == floor(r_old) && c_old == floor(c_old)) || (ceil(r_old) == h && ceil(c_old) == w) ||
                         (r_old == floor(r_old) && ceil(c_old) == w) || (ceil(r_old) == h && c_old == floor(c_old))) {
                         new_data[(r * new_w + c) * channels + cd] =
-                            data[(uint32_t)round(floor(r_old) * w + floor(c_old)) * channels + cd];
-                    } else if (c_old == floor(c_old) || ceil(c_old) == w) {
-                        uint32_t y1 = (uint32_t)round(floor(r_old)), y2 = (uint32_t)round(ceil(r_old));
+                            data[(uint32_t) round(floor(r_old) * w + floor(c_old)) * channels + cd];
+                    }
+                    else if (c_old == floor(c_old) || ceil(c_old) == w) {
+                        uint32_t y1 = (uint32_t) round(floor(r_old)), y2 = (uint32_t) round(ceil(r_old));
                         new_data[(r * new_w + c) * channels + cd] =
-                            data[(uint32_t)round(y1 * w + floor(c_old)) * channels + cd] * (double)(y2 - r_old) /
+                            data[(uint32_t) round(y1 * w + floor(c_old)) * channels + cd] * (double) (y2 - r_old) /
                                 (y2 - y1) +
-                            data[(uint32_t)round(y2 * w + floor(c_old)) * channels + cd] * (double)(r_old - y1) /
+                            data[(uint32_t) round(y2 * w + floor(c_old)) * channels + cd] * (double) (r_old - y1) /
                                 (y2 - y1);
-                    } else if (r_old == floor(r_old) || ceil(r_old) == h) {
-                        uint32_t x1 = (uint32_t)round(floor(c_old)), x2 = (uint32_t)round(ceil(c_old));
+                    }
+                    else if (r_old == floor(r_old) || ceil(r_old) == h) {
+                        uint32_t x1 = (uint32_t) round(floor(c_old)), x2 = (uint32_t) round(ceil(c_old));
                         new_data[(r * new_w + c) * channels + cd] =
-                            data[(uint32_t)round(floor(r_old) * w + x1) * channels + cd] * (double)(x2 - c_old) /
+                            data[(uint32_t) round(floor(r_old) * w + x1) * channels + cd] * (double) (x2 - c_old) /
                                 (x2 - x1) +
-                            data[(uint32_t)round(floor(r_old) * w + x2) * channels + cd] * (double)(c_old - x1) /
+                            data[(uint32_t) round(floor(r_old) * w + x2) * channels + cd] * (double) (c_old - x1) /
                                 (x2 - x1);
                     }
                     // else if (abs(r_diff) < 0.005 && abs(c_diff) < 0.005) {
@@ -1118,17 +1155,20 @@ Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, TwoDimInterp 
                     else {
                         uint32_t y1 = floor(r_old), y2 = ceil(r_old), x1 = floor(c_old), x2 = ceil(c_old);
                         new_data[(r * new_w + c) * channels + cd] =
-                            (data[(y1 * w + x1) * channels + cd] * (double)(x2 - c_old) * (double)(y2 - r_old) +
-                             (double)data[(y2 * w + x1) * channels + cd] * (double)(c_old - x1) * (double)(y2 - r_old) +
-                             (double)data[(y1 * w + x2) * channels + cd] * (double)(x2 - c_old) * (double)(r_old - y1) +
-                             (double)data[(y2 * w + x2) * channels + cd] * (double)(c_old - x1) *
-                                 (double)(r_old - y1)) /
-                            ((double)(x2 - x1) * (y2 - y1));
+                            (data[(y1 * w + x1) * channels + cd] * (double) (x2 - c_old) * (double) (y2 - r_old) +
+                             (double) data[(y2 * w + x1) * channels + cd] * (double) (c_old - x1) *
+                                 (double) (y2 - r_old) +
+                             (double) data[(y1 * w + x2) * channels + cd] * (double) (x2 - c_old) *
+                                 (double) (r_old - y1) +
+                             (double) data[(y2 * w + x2) * channels + cd] * (double) (c_old - x1) *
+                                 (double) (r_old - y1)) /
+                            ((double) (x2 - x1) * (y2 - y1));
                     }
                 }
             }
         }
-    } else {
+    }
+    else {
         throw std::invalid_argument("The scale method specified is not yet supported\n");
     }
     w = new_w;
@@ -1165,32 +1205,39 @@ Image& Image::color_reduce(ColorDepth depth, bool error_diffusion) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             if (depth == ColorDepth::Bit_3) {
-                a[0] = (int)floor((double)get(i, j, 0) / 128.0) * 255;
-            } else if (depth == ColorDepth::Bit_8) {
-                a[0] = (int)round(round((double)get(i, j, 0) / (255.0 / 7.0)) * (255.0 / 7.0));
-            } else if (depth == ColorDepth::Bit_16) {
-                a[0] = (int)round(round((double)get(i, j, 0) / (255.0 / 31.0)) * (255.0 / 31.0));
-            } else {
+                a[0] = (int) floor((double) get(i, j, 0) / 128.0) * 255;
+            }
+            else if (depth == ColorDepth::Bit_8) {
+                a[0] = (int) round(round((double) get(i, j, 0) / (255.0 / 7.0)) * (255.0 / 7.0));
+            }
+            else if (depth == ColorDepth::Bit_16) {
+                a[0] = (int) round(round((double) get(i, j, 0) / (255.0 / 31.0)) * (255.0 / 31.0));
+            }
+            else {
                 throw std::invalid_argument("The bit depth specified is not yet supported\n");
             }
             diff[0] = get(i, j, 0) - a[0];
             set(i, j, 0, a[0]);
             if (channels >= 3) {
                 if (depth == ColorDepth::Bit_3) {
-                    a[1] = (int)floor((double)get(i, j, 1) / 128.0) * 255;
-                } else if (depth == ColorDepth::Bit_8) {
-                    a[1] = (int)round(round((double)get(i, j, 1) / (255.0 / 7.0)) * (255.0 / 7.0));
-                } else if (depth == ColorDepth::Bit_16) {
-                    a[1] = (int)round(round((double)get(i, j, 1) / (255.0 / 63.0)) * (255.0 / 63.0));
+                    a[1] = (int) floor((double) get(i, j, 1) / 128.0) * 255;
+                }
+                else if (depth == ColorDepth::Bit_8) {
+                    a[1] = (int) round(round((double) get(i, j, 1) / (255.0 / 7.0)) * (255.0 / 7.0));
+                }
+                else if (depth == ColorDepth::Bit_16) {
+                    a[1] = (int) round(round((double) get(i, j, 1) / (255.0 / 63.0)) * (255.0 / 63.0));
                 }
                 diff[1] = get(i, j, 1) - a[1];
                 set(i, j, 1, a[1]);
                 if (depth == ColorDepth::Bit_3) {
-                    a[2] = (int)floor((double)get(i, j, 2) / 128.0) * 255;
-                } else if (depth == ColorDepth::Bit_8) {
-                    a[2] = (int)round(round((double)get(i, j, 2) / (255.0 / 3.0)) * (255.0 / 3.0));
-                } else if (depth == ColorDepth::Bit_16) {
-                    a[2] = (int)round(round((double)get(i, j, 2) / (255.0 / 31.0)) * (255.0 / 31.0));
+                    a[2] = (int) floor((double) get(i, j, 2) / 128.0) * 255;
+                }
+                else if (depth == ColorDepth::Bit_8) {
+                    a[2] = (int) round(round((double) get(i, j, 2) / (255.0 / 3.0)) * (255.0 / 3.0));
+                }
+                else if (depth == ColorDepth::Bit_16) {
+                    a[2] = (int) round(round((double) get(i, j, 2) / (255.0 / 31.0)) * (255.0 / 31.0));
                 }
                 diff[2] = get(i, j, 2) - a[2];
                 set(i, j, 2, a[2]);
@@ -1221,9 +1268,9 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
     grayscale_avg();
     std::vector<double> mapped_val[3];
     for (int i = 0; i <= 255; i++) {
-        mapped_val[0].push_back((double)i / 255.0);
-        mapped_val[1].push_back((double)i / 255.0);
-        mapped_val[2].push_back((double)i / 255.0);
+        mapped_val[0].push_back((double) i / 255.0);
+        mapped_val[1].push_back((double) i / 255.0);
+        mapped_val[2].push_back((double) i / 255.0);
     }
     std::vector<std::pair<double, double>> control[3];
     if (method == OneDimInterp::BSpline) {
@@ -1235,11 +1282,13 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
         if (points[points.size() - 1].first != 1.0) {
             points.push_back({1.0, points[points.size() - 1].second});
         }
-    } else if (method == OneDimInterp::Bezier) {
+    }
+    else if (method == OneDimInterp::Bezier) {
         std::vector<std::pair<double, Color>> tmp_points;
         if (points[0].first != 0.0) {
             tmp_points.push_back({0.0, points[0].second});
-        } else {
+        }
+        else {
             tmp_points.push_back(points[0]);
         }
         if (points[points.size() - 1].first != 1.0) {
@@ -1262,29 +1311,34 @@ Image& Image::color_ramp(std::vector<std::pair<double, Color>> points, OneDimInt
         mapped_val[0] = I.constant(control[0], mapped_val[0]);
         mapped_val[1] = I.constant(control[1], mapped_val[1]);
         mapped_val[2] = I.constant(control[2], mapped_val[2]);
-    } else if (method == OneDimInterp::Linear) {
+    }
+    else if (method == OneDimInterp::Linear) {
         mapped_val[0] = I.linear(control[0], mapped_val[0]);
         mapped_val[1] = I.linear(control[1], mapped_val[1]);
         mapped_val[2] = I.linear(control[2], mapped_val[2]);
-    } else if (method == OneDimInterp::BSpline) {
+    }
+    else if (method == OneDimInterp::BSpline) {
         mapped_val[0] = I.b_spline(control[0], mapped_val[0]);
         mapped_val[1] = I.b_spline(control[1], mapped_val[1]);
         mapped_val[2] = I.b_spline(control[2], mapped_val[2]);
-    } else if (method == OneDimInterp::Bezier) {
+    }
+    else if (method == OneDimInterp::Bezier) {
         mapped_val[0] = I.cubic_bezier(control[0], mapped_val[0]);
         mapped_val[1] = I.cubic_bezier(control[1], mapped_val[1]);
         mapped_val[2] = I.cubic_bezier(control[2], mapped_val[2]);
-    } else {
+    }
+    else {
         throw std::invalid_argument("The scale method specified is not yet supported\n");
     }
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             if (channels < 3) {
-                set(i, j, 0, (uint8_t)BYTE_BOUND(round(mapped_val[0][get(i, j)])));
-            } else {
-                set(i, j, 0, (uint8_t)BYTE_BOUND(round(mapped_val[0][get(i, j, 0)])));
-                set(i, j, 1, (uint8_t)BYTE_BOUND(round(mapped_val[1][get(i, j, 1)])));
-                set(i, j, 2, (uint8_t)BYTE_BOUND(round(mapped_val[2][get(i, j, 2)])));
+                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j)])));
+            }
+            else {
+                set(i, j, 0, (uint8_t) BYTE_BOUND(round(mapped_val[0][get(i, j, 0)])));
+                set(i, j, 1, (uint8_t) BYTE_BOUND(round(mapped_val[1][get(i, j, 1)])));
+                set(i, j, 2, (uint8_t) BYTE_BOUND(round(mapped_val[2][get(i, j, 2)])));
             }
         }
     }
@@ -1317,9 +1371,10 @@ Image& Image::translate(int x, int y, Color fill) {
                         new_data[(i * w + j) * channels + cd] = fill.luminance();
                     else
                         new_data[(i * w + j) * channels + cd] = fill.a;
-                } else
+                }
+                else
                     new_data[(i * w + j) * channels + cd] =
-                        data[((uint32_t)round(i - y) * w + (uint32_t)round(j - x)) * channels + cd];
+                        data[((uint32_t) round(i - y) * w + (uint32_t) round(j - x)) * channels + cd];
             }
         }
     }
@@ -1389,11 +1444,12 @@ Image& Image::set_alpha(Image& alph, bool resize_to_fit, TwoDimInterp method) {
                     (i >= alph.h || j >= alph.w) ? 255 : alph.data[(i * alph.w + j) * alph.channels];
             }
         }
-    } else {
+    }
+    else {
         uint8_t* new_data = new uint8_t[w * h * (channels + 1)];
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
-                memcpy(&new_data[(i * w + j) * (channels + 1)], &data[(i * w + j) * channels], (size_t)channels);
+                memcpy(&new_data[(i * w + j) * (channels + 1)], &data[(i * w + j) * channels], (size_t) channels);
                 new_data[(i * w + j) * (channels + 1) + 3] =
                     (i >= alph.h || j >= alph.w) ? 255 : alph.data[(i * alph.w + j) * alph.channels];
             }
@@ -1441,14 +1497,16 @@ Image& Image::histogram(bool inc_lum, int channel, Color fill) {
                     max_cnt = fmax(++cnt_clr[cn][data[(i * w + j) * channels + cn]], max_cnt);
                 }
                 if (inc_lum && channels >= 3) {
-                    max_cnt = fmax(++cnt_clr[3][(uint32_t)round(color.luminance(data[(i * w + j) * channels],
-                                                                                data[(i * w + j) * channels + 1],
-                                                                                data[(i * w + j) * channels + 2]))],
+                    max_cnt = fmax(++cnt_clr[3][(uint32_t) round(color.luminance(data[(i * w + j) * channels],
+                                                                                 data[(i * w + j) * channels + 1],
+                                                                                 data[(i * w + j) * channels + 2]))],
                                    max_cnt);
-                } else if (inc_lum) {
+                }
+                else if (inc_lum) {
                     printf("Unable to calculate luminance for image with %d channels.\n", channels);
                 }
-            } else {
+            }
+            else {
                 max_cnt = fmax(++cnt_clr[0][data[(i * w + j) * channels + channel]], max_cnt);
             }
         }
@@ -1456,18 +1514,19 @@ Image& Image::histogram(bool inc_lum, int channel, Color fill) {
 
     for (int c = 0; c < 256; c++) {
         for (int cn = 0; cn < fmin(channels, channel < 0 ? 3.0 : 1.0); cn++) {
-            for (int r = 0; r <= (double)cnt_clr[(channel < 0 ? cn : 0)][c] * 255.0 / (double)max_cnt; r++) {
+            for (int r = 0; r <= (double) cnt_clr[(channel < 0 ? cn : 0)][c] * 255.0 / (double) max_cnt; r++) {
                 if (channels < 3 || channel > 0) {
                     hist->set((255 - r), c, 0, fill.r);
                     hist->set((255 - r), c, 1, fill.g);
                     hist->set((255 - r), c, 2, fill.b);
-                } else {
+                }
+                else {
                     hist->data[((255 - r) * 256 + c) * 3 + cn] += 125;
                 }
             }
         }
         if (inc_lum && channels >= 3) {
-            for (int r = 0; r <= (double)cnt_clr[3][c] * 255.0 / (double)max_cnt; r++) {
+            for (int r = 0; r <= (double) cnt_clr[3][c] * 255.0 / (double) max_cnt; r++) {
                 hist->set((255 - r), c, 0, std::clamp(hist->get((255 - r), c, 0) + 100, 0, 255));
                 hist->set((255 - r), c, 1, std::clamp(hist->get((255 - r), c, 1) + 100, 0, 255));
                 hist->set((255 - r), c, 2, std::clamp(hist->get((255 - r), c, 2) + 100, 0, 255));
@@ -1488,17 +1547,18 @@ Image& Image::histogram_lum(Color fill) {
         for (int j = 0; j < w; j++) {
             if (channels < 3) {
                 max_cnt = fmax(++cnt_clr[data[(i * w + j) * channels]], max_cnt);
-            } else {
-                max_cnt = fmax(++cnt_clr[(uint32_t)round(color.luminance(data[(i * w + j) * channels],
-                                                                         data[(i * w + j) * channels + 1],
-                                                                         data[(i * w + j) * channels + 2]))],
+            }
+            else {
+                max_cnt = fmax(++cnt_clr[(uint32_t) round(color.luminance(data[(i * w + j) * channels],
+                                                                          data[(i * w + j) * channels + 1],
+                                                                          data[(i * w + j) * channels + 2]))],
                                max_cnt);
             }
         }
     }
 
     for (int c = 0; c < 256; c++) {
-        for (int r = 0; r <= (double)cnt_clr[c] * 255.0 / (double)max_cnt; r++) {
+        for (int r = 0; r <= (double) cnt_clr[c] * 255.0 / (double) max_cnt; r++) {
             hist->set((255 - r), c, 0, fill.r);
             hist->set((255 - r), c, 1, fill.g);
             hist->set((255 - r), c, 2, fill.b);
@@ -1516,14 +1576,16 @@ Image& Image::histogram_avg(Color fill) {
         for (int j = 0; j < w; j++) {
             if (channels < 3) {
                 max_cnt = fmax(++cnt_clr[data[(i * w + j) * channels]], max_cnt);
-            } else {
-                max_cnt = fmax(++cnt_clr[(uint32_t)round((get(i, j, 0) + get(i, j, 1) + get(i, j, 2)) / 3.0)], max_cnt);
+            }
+            else {
+                max_cnt =
+                    fmax(++cnt_clr[(uint32_t) round((get(i, j, 0) + get(i, j, 1) + get(i, j, 2)) / 3.0)], max_cnt);
             }
         }
     }
 
     for (int c = 0; c < 256; c++) {
-        for (int r = 0; r <= (double)cnt_clr[c] * 255.0 / (double)max_cnt; r++) {
+        for (int r = 0; r <= (double) cnt_clr[c] * 255.0 / (double) max_cnt; r++) {
             hist->set((255 - r), c, 0, fill.r);
             hist->set((255 - r), c, 1, fill.g);
             hist->set((255 - r), c, 2, fill.b);
@@ -1543,7 +1605,8 @@ Image& Image::HSV(double hue_delta, double saturation_delta, double value_delta)
                                  data[(i * w + j) * channels]);
                 c.hsv_to_rgb(c.r + hue_delta, c.g + saturation_delta, c.b + value_delta);
                 data[(i * w + j) * channels] = c.r;
-            } else {
+            }
+            else {
                 c = c.rgb_to_hsv(data[(i * w + j) * channels], data[(i * w + j) * channels + 1],
                                  data[(i * w + j) * channels + 2]);
                 c.hsv_to_rgb(c.r + hue_delta, std::clamp(c.g + saturation_delta, 0.0, 1.0),
@@ -1579,43 +1642,53 @@ Image& Image::false_color(bool overwrite) {
                 ret->data[(i * w + j) * 3] = lookup[0].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[0].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[0].b;
-            } else if (lum <= 15) {
+            }
+            else if (lum <= 15) {
                 ret->data[(i * w + j) * 3] = lookup[1].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[1].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[1].b;
-            } else if (lum <= 58) {
+            }
+            else if (lum <= 58) {
                 ret->data[(i * w + j) * 3] = lookup[2].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[2].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[2].b;
-            } else if (lum <= 102) {
+            }
+            else if (lum <= 102) {
                 ret->data[(i * w + j) * 3] = lookup[3].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[3].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[3].b;
-            } else if (lum <= 117) {
+            }
+            else if (lum <= 117) {
                 ret->data[(i * w + j) * 3] = lookup[4].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[4].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[4].b;
-            } else if (lum <= 137) {
+            }
+            else if (lum <= 137) {
                 ret->data[(i * w + j) * 3] = lookup[5].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[5].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[5].b;
-            } else if (lum <= 153) {
+            }
+            else if (lum <= 153) {
                 ret->data[(i * w + j) * 3] = lookup[6].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[6].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[6].b;
-            } else if (lum <= 196) {
+            }
+            else if (lum <= 196) {
                 ret->data[(i * w + j) * 3] = lookup[7].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[7].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[7].b;
-            } else if (lum <= 239) {
+            }
+            else if (lum <= 239) {
                 ret->data[(i * w + j) * 3] = lookup[8].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[8].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[8].b;
-            } else if (lum <= 254) {
+            }
+            else if (lum <= 254) {
                 ret->data[(i * w + j) * 3] = lookup[9].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[9].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[9].b;
-            } else {
+            }
+            else {
                 ret->data[(i * w + j) * 3] = lookup[10].r;
                 ret->data[(i * w + j) * 3 + 1] = lookup[10].g;
                 ret->data[(i * w + j) * 3 + 2] = lookup[10].b;
@@ -1639,7 +1712,8 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
         for (int j = 0; j < w; j++) {
             if (channels < 3) {
                 c.r = c.g = c.b = data[(i * w + j) * channels];
-            } else {
+            }
+            else {
                 c.r = data[(i * w + j) * channels];
                 c.g = data[(i * w + j) * channels + 1];
                 c.b = data[(i * w + j) * channels + 2];
@@ -1649,14 +1723,16 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
                 s_fac = lum / midtones_start;
                 m_fac = 0.1 * lum / midtones_start;
                 h_fac = 0.1 * lum / ((midtones_start + midtones_end) / 2);
-            } else if (lum < midtones_end) {
-                if (lum <= ((double)midtones_end - midtones_start) / 2.0) {
+            }
+            else if (lum < midtones_end) {
+                if (lum <= ((double) midtones_end - midtones_start) / 2.0) {
                     l = midtones_start;
-                    hh = ((double)midtones_end - midtones_start) / 2.0;
+                    hh = ((double) midtones_end - midtones_start) / 2.0;
                     fl = 1;
                     fh = 0.1;
-                } else {
-                    l = ((double)midtones_end - midtones_start) / 2.0;
+                }
+                else {
+                    l = ((double) midtones_end - midtones_start) / 2.0;
                     hh = 255;
                     fl = 0.1;
                     fh = 0;
@@ -1667,7 +1743,8 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
                     hh = (midtones_start + midtones_end) / 2.0;
                     fl = 0.1;
                     fh = 1;
-                } else {
+                }
+                else {
                     l = (midtones_start + midtones_end) / 2.0;
                     hh = midtones_end;
                     fl = 1;
@@ -1675,20 +1752,22 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
                 }
                 m_fac = ((lum - l) * fh + (hh - lum) * fl) / (hh - l);
 
-                if (lum <= ((double)midtones_start + midtones_end) / 2.0) {
+                if (lum <= ((double) midtones_start + midtones_end) / 2.0) {
                     l = 0;
-                    hh = ((double)midtones_start + midtones_end) / 2.0;
+                    hh = ((double) midtones_start + midtones_end) / 2.0;
                     fl = 0;
                     fh = 0.1;
-                } else {
-                    l = ((double)midtones_start + midtones_end) / 2.0;
+                }
+                else {
+                    l = ((double) midtones_start + midtones_end) / 2.0;
                     hh = midtones_end;
                     fl = 0.1;
                     fh = 0.75;
                 }
                 h_fac = ((lum - l) * fh + (hh - lum) * fl) / (hh - l);
-            } else {
-                s_fac = ((255 - lum) * 0.1) / (255 - ((double)midtones_start + midtones_end) / 2.0);
+            }
+            else {
+                s_fac = ((255 - lum) * 0.1) / (255 - ((double) midtones_start + midtones_end) / 2.0);
                 m_fac = ((255 - lum) * 0.1) / (255 - midtones_end);
                 h_fac = ((lum - midtones_end) * 1 + (255.0 - lum) * 0.8) / (255 - midtones_end);
             }
@@ -1698,7 +1777,8 @@ Image& Image::tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustm
             c = c.apply_adj_rgb(highlight, h_fac);
             if (channels < 3) {
                 data[(i * w + j) * channels] = c.r;
-            } else {
+            }
+            else {
                 data[(i * w + j) * channels] = c.r;
                 data[(i * w + j) * channels + 1] = c.g;
                 data[(i * w + j) * channels + 2] = c.b;
@@ -1725,20 +1805,23 @@ Image& Image::rotate(double origin_x, double origin_y, double angle, TwoDimInter
                 }
                 for (int cd = 0; cd < fmin(4, channels); cd++) {
                     new_data[(i * w + j) * channels + cd] =
-                        data[((uint32_t)y_old * w + (uint32_t)x_old) * channels + cd];
+                        data[((uint32_t) y_old * w + (uint32_t) x_old) * channels + cd];
                 }
-            } else if (method == TwoDimInterp::Bilinear) {
+            }
+            else if (method == TwoDimInterp::Bilinear) {
                 if (round(x_old) <= -1 || round(x_old) > w || round(y_old) <= -1 || round(y_old) > h) {
                     for (int cd = 0; cd < fmin(4, channels); cd++) {
                         new_data[(i * w + j) * channels + cd] = fill.get(cd);
                     }
-                } else {
+                }
+                else {
                     ret = I.bilinear(*this, y_old, x_old, true);
                     for (int cd = 0; cd < fmin(4, channels); cd++) {
                         new_data[(i * w + j) * channels + cd] = ret.get(cd);
                     }
                 }
-            } else {
+            }
+            else {
                 printf("The interpolation method is not yet supported");
             }
         }
@@ -1764,12 +1847,14 @@ Image& Image::RGB_curves(OneDimInterp method, std::vector<std::pair<double, doub
         delta[0] = I.cubic_bezier(control_r, ask);
         delta[1] = I.cubic_bezier(control_g, ask);
         delta[2] = I.cubic_bezier(control_b, ask);
-    } else if (method == OneDimInterp::BSpline) {
+    }
+    else if (method == OneDimInterp::BSpline) {
         tmp = I.b_spline(control_c, ask);
         delta[0] = I.b_spline(control_r, ask);
         delta[1] = I.b_spline(control_g, ask);
         delta[2] = I.b_spline(control_b, ask);
-    } else {
+    }
+    else {
         throw std::invalid_argument("The interpolation method is not yet supported\n");
     }
     for (int i = 0; i < 256; i++) {
@@ -1779,9 +1864,9 @@ Image& Image::RGB_curves(OneDimInterp method, std::vector<std::pair<double, doub
     }
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            set(i, j, 0, (uint8_t)BYTE_BOUND(round((double)get(i, j, 0) + 255.0 * delta[0][get(i, j, 0)])));
-            set(i, j, 1, (uint8_t)BYTE_BOUND(round((double)get(i, j, 1) + 255.0 * delta[1][get(i, j, 1)])));
-            set(i, j, 2, (uint8_t)BYTE_BOUND(round((double)get(i, j, 2) + 255.0 * delta[2][get(i, j, 2)])));
+            set(i, j, 0, (uint8_t) BYTE_BOUND(round((double) get(i, j, 0) + 255.0 * delta[0][get(i, j, 0)])));
+            set(i, j, 1, (uint8_t) BYTE_BOUND(round((double) get(i, j, 1) + 255.0 * delta[1][get(i, j, 1)])));
+            set(i, j, 2, (uint8_t) BYTE_BOUND(round((double) get(i, j, 2) + 255.0 * delta[2][get(i, j, 2)])));
         }
     }
     return *this;
@@ -1829,7 +1914,8 @@ Image* Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<doub
             blu.set(round(255 - 255.0 * res[r]), r, 1, 255);
             blu.set(round(255 - 255.0 * res[r]), r, 2, 255);
         }
-    } else if (method == OneDimInterp::BSpline) {
+    }
+    else if (method == OneDimInterp::BSpline) {
         res = I.b_spline(control_c, ask);
         for (int r = 0; r < 256; r++) {
             ctrl.set(round(255 - 255.0 * res[r]), r, 0, 255);
@@ -1854,7 +1940,8 @@ Image* Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<doub
             blu.set(round(255 - 255.0 * res[r]), r, 1, 255);
             blu.set(round(255 - 255.0 * res[r]), r, 2, 255);
         }
-    } else {
+    }
+    else {
         throw std::invalid_argument("The interpolation method is not yet supported\n");
     }
 
@@ -1893,7 +1980,7 @@ Image& Image::hue_correct(std::vector<std::pair<double, double>> control_h,
     Color clr;
     std::vector<double> ask, delta[3];
     for (int i = 0; i < 360; i++) {
-        ask.push_back((double)i);
+        ask.push_back((double) i);
     }
     control_h.insert(control_h.begin(), control_h[control_h.size() - 1]);
     control_s.insert(control_s.begin(), control_s[control_s.size() - 1]);
@@ -1932,9 +2019,9 @@ Image& Image::hue_correct(std::vector<std::pair<double, double>> control_h,
             clr.g = get(r, c, 1);
             clr.b = get(r, c, 2);
             clr.to_hsv();
-            clr.g += delta[1][((uint32_t)round(clr.r)) % 360];
-            clr.b += delta[2][((uint32_t)round(clr.r)) % 360];
-            clr.r = clr.r + 180 * delta[0][((uint32_t)round(clr.r)) % 360];
+            clr.g += delta[1][((uint32_t) round(clr.r)) % 360];
+            clr.b += delta[2][((uint32_t) round(clr.r)) % 360];
+            clr.r = clr.r + 180 * delta[0][((uint32_t) round(clr.r)) % 360];
             clr.hsv_to_rgb(fmod(clr.r, 360), std::clamp(clr.g, 0.0, 1.0), std::clamp(clr.b, 0.0, 1.0));
             set(r, c, 0, clr.r);
             set(r, c, 1, clr.g);
@@ -1954,7 +2041,7 @@ Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control
     Color c;
     std::vector<double> ask, res;
     for (int i = 0; i < 720; i++) {
-        ask.push_back((double)i / 2.0);
+        ask.push_back((double) i / 2.0);
     }
     control_h.insert(control_h.begin(), control_h[control_h.size() - 1]);
     control_s.insert(control_s.begin(), control_s[control_s.size() - 1]);
@@ -1994,17 +2081,17 @@ Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control
     res = I.cubic_bezier(control_h, ask);
     for (int w = 0; w < 720; w++) {
         for (int r = 0; r < 360; r++) {
-            c.hsv_to_rgb((int)round(w / 2.0 + (360 - r) + 180 + 360) % 360, 1, 1);
+            c.hsv_to_rgb((int) round(w / 2.0 + (360 - r) + 180 + 360) % 360, 1, 1);
             ret.set_offset(r, w, 5, 5, 0, c.r);
             ret.set_offset(r, w, 5, 5, 1, c.g);
             ret.set_offset(r, w, 5, 5, 2, c.b);
         }
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 0,
-                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 0));
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 1,
-                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 1));
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 5, 5, 2,
-                       255 - ret.get_offset(36 - -(res[w] * (double)180 + 180), w, 5, 5, 2));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 5, 5, 0,
+                       255 - ret.get_offset(360 - (res[w] * (double) 180 + 180), w, 5, 5, 0));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 5, 5, 1,
+                       255 - ret.get_offset(360 - (res[w] * (double) 180 + 180), w, 5, 5, 1));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 5, 5, 2,
+                       255 - ret.get_offset(36 - -(res[w] * (double) 180 + 180), w, 5, 5, 2));
     }
     res = I.cubic_bezier(control_s, ask);
     for (int w = 0; w < 720; w++) {
@@ -2014,12 +2101,12 @@ Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control
             ret.set_offset(r, w, 370, 5, 1, c.g);
             ret.set_offset(r, w, 370, 5, 2, c.b);
         }
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 0,
-                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 0));
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 1,
-                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 1));
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 370, 5, 2,
-                       255 - ret.get_offset(36 - -(res[w] * (double)180 + 180), w, 370, 5, 2));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 370, 5, 0,
+                       255 - ret.get_offset(360 - (res[w] * (double) 180 + 180), w, 370, 5, 0));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 370, 5, 1,
+                       255 - ret.get_offset(360 - (res[w] * (double) 180 + 180), w, 370, 5, 1));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 370, 5, 2,
+                       255 - ret.get_offset(36 - -(res[w] * (double) 180 + 180), w, 370, 5, 2));
     }
     res = I.cubic_bezier(control_v, ask);
     for (int w = 0; w < 720; w++) {
@@ -2029,12 +2116,12 @@ Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control
             ret.set_offset(r, w, 735, 5, 1, c.g);
             ret.set_offset(r, w, 735, 5, 2, c.b);
         }
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 0,
-                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 0));
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 1,
-                       255 - ret.get_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 1));
-        ret.set_offset(360 - (res[w] * (double)180 + 180), w, 735, 5, 2,
-                       255 - ret.get_offset(36 - -(res[w] * (double)180 + 180), w, 735, 5, 2));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 735, 5, 0,
+                       255 - ret.get_offset(360 - (res[w] * (double) 180 + 180), w, 735, 5, 0));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 735, 5, 1,
+                       255 - ret.get_offset(360 - (res[w] * (double) 180 + 180), w, 735, 5, 1));
+        ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 735, 5, 2,
+                       255 - ret.get_offset(36 - -(res[w] * (double) 180 + 180), w, 735, 5, 2));
     }
     return &ret;
 }
@@ -2044,18 +2131,19 @@ Image& Image::blur(Blur method, int radius_x, int radius_y) {
         for (int i = 0; i < (2 * radius_x + 1) * (2 * radius_y + 1); i++) {
             ker_vec.push_back(1.0 / ((2 * radius_x + 1) * (2 * radius_y + 1)));
         }
-    } else if (method == Blur::Gaussian) {
+    }
+    else if (method == Blur::Gaussian) {
         double sigma_x = (2 * radius_x) / 6.0;
         double sigma_y = (2 * radius_y) / 6.0;
         for (int i = -radius_x; i <= radius_x; i++) {
             for (int j = -radius_y; j <= radius_y; j++) {
-                ker_vec.push_back(
-                    pow(M_E, -((double)i * i / (2.0 * sigma_x * sigma_x) + (double)j * j / (2.0 * sigma_y * sigma_y))) /
-                    (2.0 * M_PI * sigma_x * sigma_y));
+                ker_vec.push_back(pow(M_E, -((double) i * i / (2.0 * sigma_x * sigma_x) +
+                                             (double) j * j / (2.0 * sigma_y * sigma_y))) /
+                                  (2.0 * M_PI * sigma_x * sigma_y));
             }
         }
-
-    } else {
+    }
+    else {
         throw std::invalid_argument("The blur method is not yet supported\n");
     }
     convolve_clamp_to_border(0, (2 * radius_x + 1), (2 * radius_y + 1), &ker_vec[0], radius_x, radius_y);

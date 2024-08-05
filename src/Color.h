@@ -33,19 +33,24 @@ struct Color {
         if (h_deg < 60) {
             rt = c;
             gt = x;
-        } else if (h_deg < 120) {
+        }
+        else if (h_deg < 120) {
             rt = x;
             gt = c;
-        } else if (h_deg < 180) {
+        }
+        else if (h_deg < 180) {
             gt = c;
             bt = x;
-        } else if (h_deg < 240) {
+        }
+        else if (h_deg < 240) {
             gt = x;
             bt = c;
-        } else if (h_deg < 300) {
+        }
+        else if (h_deg < 300) {
             bt = c;
             rt = x;
-        } else {
+        }
+        else {
             bt = x;
             rt = c;
         }
@@ -61,17 +66,21 @@ struct Color {
         double c_max = fmax(r, fmax(g, b)), c_min = fmin(r, fmin(g, b)), delta = c_max - c_min;
         if (delta == 0) {
             r = 0;
-        } else if (c_max == r) {
+        }
+        else if (c_max == r) {
             r = 60.0 * fmod(fmod(((g - b) / delta), 6) + 6, 6);
-        } else if (c_max == g) {
+        }
+        else if (c_max == g) {
             r = 60.0 * (fmod(fmod((b - r) / delta, 6) + 6, 6) + 2);
-        } else if (c_max == b) {
+        }
+        else if (c_max == b) {
             r = 60.0 * (fmod(fmod((r - g) / delta, 6) + 6, 6) + 4);
         }
 
         if (c_max == 0) {
             g = 0;
-        } else {
+        }
+        else {
             g = delta / c_max;
         }
         b = c_max;
@@ -85,17 +94,21 @@ struct Color {
         Color* ret = new Color(0, 0, 0);
         if (delta == 0) {
             ret->r = 0;
-        } else if (c_max == rr) {
+        }
+        else if (c_max == rr) {
             ret->r = 60.0 * fmod(fmod(((gg - bb) / delta), 6) + 6, 6);
-        } else if (c_max == gg) {
+        }
+        else if (c_max == gg) {
             ret->r = 60.0 * (fmod(fmod((bb - rr) / delta, 6) + 6, 6) + 2);
-        } else if (c_max == bb) {
+        }
+        else if (c_max == bb) {
             ret->r = 60.0 * (fmod(fmod((rr - gg) / delta, 6) + 6, 6) + 4);
         }
 
         if (c_max == 0) {
             ret->g = 0;
-        } else {
+        }
+        else {
             ret->g = delta / c_max;
         }
         ret->b = c_max;
@@ -162,21 +175,37 @@ struct Color {
         return r == other.r ? (g == other.g ? b < other.b : g < other.g) : r < other.r;
     }
 
-    Color operator+(const Color& other) const { return Color(r + other.r, g + other.g, b + other.b, a + other.a); }
+    Color operator+(const Color& other) const {
+        return Color(r + other.r, g + other.g, b + other.b, a + other.a);
+    }
 
-    Color operator*(const Color& other) const { return Color(r * other.r, g * other.g, b * other.b, a * other.a); }
+    Color operator*(const Color& other) const {
+        return Color(r * other.r, g * other.g, b * other.b, a * other.a);
+    }
 
-    Color operator*(double mult) const { return Color(r * mult, g * mult, b * mult, a * mult); }
+    Color operator*(double mult) const {
+        return Color(r * mult, g * mult, b * mult, a * mult);
+    }
 
-    Color operator/(const Color& other) const { return Color(r / other.r, g / other.g, b / other.b, a / other.a); }
+    Color operator/(const Color& other) const {
+        return Color(r / other.r, g / other.g, b / other.b, a / other.a);
+    }
 
-    Color operator/(double div) const { return Color(r / div, g / div, b / div, a / div); }
+    Color operator/(double div) const {
+        return Color(r / div, g / div, b / div, a / div);
+    }
 
-    double luminance(double r, double g, double b) { return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+    double luminance(double r, double g, double b) {
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
 
-    double luminance() { return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
+    double luminance() {
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
 
-    static double luminance(const Color& c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; }
+    static double luminance(const Color& c) {
+        return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+    }
 
     Color& apply_adj_rgb(Adjustment adj, double factor) {
         // double brightness = 0, contrast = 0, hue = 0, saturation = 0, value = 0, lift = 1, gamma = 1, gain = 1;
