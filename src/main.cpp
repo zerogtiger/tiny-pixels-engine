@@ -240,16 +240,18 @@ void test1() {
 }
 
 int main(int argc, char** argv) {
+    Image colorful("images/colorful.jpg");
+    colorful.vignette(0.4, 0);
+
+    colorful.write("alpha_overlay.png");
 
     // Image colorful("images/clear_bg.png");
-    Image colorful("images/colorful.jpg");
-    Image colorful_rampped("images/colorful.jpg");
-    std::vector<std::pair<double, Color>> points{{0.4, Color(0, 0, 0)}, {0.7, Color(255, 255, 255)}};
-    colorful_rampped.color_ramp(points);
-    colorful_rampped.write("colorful_rampped.png");
-    Image fac("images/0_separate.png");
-    colorful.alpha_overlay(&fac, &colorful_rampped, 300, 300, 300, 300);
-    colorful.write("alpha_overlay.png");
+    // Image colorful_rampped("images/colorful.jpg");
+    // std::vector<std::pair<double, Color>> points{{0.4, Color(0, 0, 0)}, {0.7, Color(255, 255, 255)}};
+    // colorful_rampped.color_ramp(points);
+    // colorful_rampped.write("colorful_rampped.png");
+    // Image fac("images/0_separate.png");
+    // colorful.alpha_overlay(&fac, 300, 300, &colorful_rampped, 300, 300);
 
     // preview.color_reduce(ColorDepth::Bit_8, true);
     // colorful.color_reduce(ColorDepth::Bit_8, true);

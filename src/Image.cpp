@@ -2210,3 +2210,25 @@ Image& Image::alpha_overlay(Image* fac, int fac_x, int fac_y, Color other) {
     Image o(w, h, 3, other);
     return alpha_overlay(fac, fac_x, fac_y, &o, 0, 0);
 }
+Image& Image::vignette(double fact_x, double fact_y) {
+
+    Image mask(w, h, 1);
+    double sigma_x = (w) / (6.0 * fact_x + 1E-5);
+    double sigma_y = (h) / (6.0 * fact_y + 1E-5);
+    double x_dist, y_dist;
+    double scale = 2 * M_PI * sigma_x * sigma_y;
+
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            y_dist = (double) r + 0.5 - (double) h / 2.0;
+            x_dist = (double) c + 0.5 - (double) w / 2.0;
+            mask.set(r, c, 0,
+                     255 - 255 * scale * pow(M_E, -((double) x_dist * x_dist / (2.0 * sigma_x * sigma_x) +
+                                (double) y_dist * y_dist / (2.0 * sigma_y * sigma_y))) /
+                         (2.0 * M_PI * sigma_x * sigma_y));
+        }
+    }
+    alpha_overlay(&mask, 0, 0, Color(0, 0, 0));
+    mask.write("vignette_mask.png");
+    return *this;
+}

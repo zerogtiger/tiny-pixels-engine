@@ -182,5 +182,7 @@ struct Image {
     Image& alpha_overlay(Color color, Image* other, int other_x, int other_y);
     Image& alpha_overlay(Color color, Color other);
     Image& alpha_overlay(Image* fac, int fac_x, int fac_y, Color other);
+
+    Image& vignette(double fact_x = 0, double fact_y = 0);
 };
 #endif
