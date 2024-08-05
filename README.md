@@ -46,7 +46,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Anti-aliasing
     - [x] Masking
     - [x] Vignette
-    - [ ] Color matrix
+    - [x] Color matrix
 - Transform
     - [x] Rotate
     - [ ] Scale

@@ -241,9 +241,18 @@ void test1() {
 
 int main(int argc, char** argv) {
     Image colorful("images/colorful.jpg");
-    colorful.vignette(0.4, 0);
+    // colorful.vignette(0.4, 0);
+    std::vector<std::vector<double>> matrix = {
+        {0.393,0.349,0.272,0,0},
+        {0.769,0.686,0.534,0,0},
+        {0.189,0.168,0.131,0,0},
+        {0, 0, 0, 1, 0},
+        {0, 0, 0, 0, 1}
+    };
+    colorful.color_matrix(matrix);
 
-    colorful.write("alpha_overlay.png");
+
+    colorful.write("color_matrix.png");
 
     // Image colorful("images/clear_bg.png");
     // Image colorful_rampped("images/colorful.jpg");

@@ -184,5 +184,7 @@ struct Image {
     Image& alpha_overlay(Image* fac, int fac_x, int fac_y, Color other);
 
     Image& vignette(double fact_x = 0, double fact_y = 0);
+
+    Image& color_matrix(std::vector<std::vector<double>> matrix);
 };
 #endif

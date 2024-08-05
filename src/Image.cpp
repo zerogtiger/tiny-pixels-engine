@@ -2223,12 +2223,31 @@ Image& Image::vignette(double fact_x, double fact_y) {
             y_dist = (double) r + 0.5 - (double) h / 2.0;
             x_dist = (double) c + 0.5 - (double) w / 2.0;
             mask.set(r, c, 0,
-                     255 - 255 * scale * pow(M_E, -((double) x_dist * x_dist / (2.0 * sigma_x * sigma_x) +
-                                (double) y_dist * y_dist / (2.0 * sigma_y * sigma_y))) /
-                         (2.0 * M_PI * sigma_x * sigma_y));
+                     255 - 255 * scale *
+                               pow(M_E, -((double) x_dist * x_dist / (2.0 * sigma_x * sigma_x) +
+                                          (double) y_dist * y_dist / (2.0 * sigma_y * sigma_y))) /
+                               (2.0 * M_PI * sigma_x * sigma_y));
         }
     }
     alpha_overlay(&mask, 0, 0, Color(0, 0, 0));
-    mask.write("vignette_mask.png");
+    return *this;
+}
+
+// Notes: matrix must be 5 x 5
+Image& Image::color_matrix(std::vector<std::vector<double>> matrix) {
+
+    double res;
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            for (int md = 0; md < std::min(channels, 4); md++) {
+                res = 0;
+                for (int cd = 0; cd < 5; cd++) {
+                    res += 255.0 * get_or_default(r, c, cd, 255.0) * matrix[cd][md] / 255.0;
+                }
+                set(r, c, md, (uint8_t) BYTE_BOUND(round(res)));
+            }
+        }
+    }
+
     return *this;
 }
