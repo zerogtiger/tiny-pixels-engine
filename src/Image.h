@@ -128,7 +128,7 @@ struct Image {
     Image& invert_color(uint8_t channel);
     Image& gamma(uint8_t channel, double gamma_delta);
 
-    Image& color_reduce(bool error_diffusion = true);
+    Image& color_reduce(ColorDepth depth = ColorDepth::Bit_3, bool error_diffusion = true);
 
     Image& color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method = OneDimInterp::Linear);
     Image& preview_color_ramp(std::vector<std::pair<double, Color>> points,
@@ -176,5 +176,7 @@ struct Image {
                                std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
 
     Image& blur(Blur method = Blur::Gaussian, int radius_x = 5, int radius_y = 5);
+
+
 };
 #endif

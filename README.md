@@ -5,6 +5,7 @@ A C++ based image and graphics processing library implemented from scratch.
 - Color
     - [x] Invert
     - [x] Histogram
+        - [ ] Read on histogram equalization for new techniques of adjustment
     - [x] Hue correct
     - [x] Tonal correction
     - [x] Color balance (lift, gamma, gain)
@@ -13,8 +14,11 @@ A C++ based image and graphics processing library implemented from scratch.
     - [x] Gamma
     - [x] HSV adjustments
     - [x] RGB curves
+        - [ ] Catmull-Rom spline
+        - [ ] Eyedropper for black, white, gray levels
     - [ ] Tone map
     - [ ] White balance
+        - [ ] Eyedropper
     - [x] False color
     - [ ] Mixing options
         - [ ] Alpha over
@@ -25,12 +29,15 @@ A C++ based image and graphics processing library implemented from scratch.
             - [x] Linear
             - [x] Bézier
             - [x] B-Spline
+                - [ ] Read on De Boor's for possible optimization
 - Filtering
     - [ ] Color reduce
         - [x] 3-bit color
         - [x] 3-bit Floyd-Steinberg error diffusion
-        - [ ] 8-bit color
-        - [ ] 8-bit Floyd-Steinberg error diffusion
+        - [x] 8-bit color
+        - [x] 8-bit Floyd-Steinberg error diffusion
+        - [x] 16-bit color
+        - [x] 16-bit Floyd-Steinberg error diffusion
         - [ ] 8/16-bit color quantization
     - [ ] Blur
         - [x] Box
@@ -39,6 +46,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Anti-aliasing
     - [ ] Masking
     - [ ] Vignette
+    - [ ] Color matrix
 - Transform
     - [x] Rotate
     - [ ] Scale
@@ -63,6 +71,10 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Noise
         - [ ] Voronoi
         - [ ] Wave
+- Drawing
+    - [ ] Lines
+    - [ ] Rectangles
+    - [ ] Ellipse
 - Documentation (not started)
 
 ## High Priority Enhancements/Bug Fixes

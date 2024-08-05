@@ -241,13 +241,18 @@ void test1() {
 int main(int argc, char** argv) {
 
     Image colorful("images/colorful.jpg");
-    colorful.blur(Blur::Gaussian, 400, 400);
+    std::vector<std::pair<double, Color>> points{{0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
+    Image preview = colorful.preview_color_ramp(points);
+    preview.color_reduce(ColorDepth::Bit_8, true);
+    colorful.color_reduce(ColorDepth::Bit_8, true);
+    preview.write("preview.png");
+    colorful.write("reduce_2.png");
+    // colorful.blur(Blur::Gaussian, 400, 400);
     // colorful.saturation(-1, -1);
     // colorful.exposure(-1);
     
     // colorful.preview_hue_correct()->write("preview_hue_correct.png");
     // colorful.hue_correct();
-    colorful.write("blur.png");
 
     // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.7, 0.5}, {0.75, 0.6}, {0.8, 0.7}, {0.9, 1.0}, {1.0, 1.0}};
     // std::vector<std::pair<double, double>> points{{0.0, 0.0}, {0.4, 0.0}, {0.9, 1.0}, {1.0, 1.0}};
