@@ -33,9 +33,9 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] 8-bit Floyd-Steinberg error diffusion
         - [ ] 8/16-bit color quantization
     - [ ] Blur
-        - [ ] Box
+        - [x] Box
+        - [x] Gaussian
         - [ ] Bokeh
-        - [ ] Gaussian (3x3 case implemented)
     - [ ] Anti-aliasing
     - [ ] Masking
     - [ ] Vignette

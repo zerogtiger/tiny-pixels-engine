@@ -112,7 +112,7 @@ struct Image {
 
     Image& brightness(uint8_t channel, double brightness_delta);
     Image& contrast(uint8_t channel, double contrast_delta);
-    // unimplemented
+    // implemented, but unnecessary
     Image& saturation(int channel, double saturation_delta);
     Image& exposure(double exposure);
 
@@ -174,5 +174,7 @@ struct Image {
     Image* preview_hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 0}, {181, 0}},
                                std::vector<std::pair<double, double>> control_s = {{179, 0}, {180, 0}, {181, 0}},
                                std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
+
+    Image& blur(Blur method = Blur::Gaussian, int radius_x = 5, int radius_y = 5);
 };
 #endif

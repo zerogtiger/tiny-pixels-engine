@@ -4,5 +4,6 @@
 enum ImageType { PNG, JPG, BMP, TGA };
 enum TwoDimInterp { Nearest, Bilinear, Bicubic, Fourier, Edge, HQX, Mipmap, RSamp, RShear, RAM };
 enum OneDimInterp { Constant, Linear, Bezier, BSpline };
+enum Blur { Box, Gaussian, Bokeh};
 
 #endif

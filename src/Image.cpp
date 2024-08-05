@@ -2031,3 +2031,29 @@ Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control
     }
     return &ret;
 }
+Image& Image::blur(Blur method, int radius_x, int radius_y) {
+    std::vector<double> ker_vec;
+    if (method == Blur::Box) {
+        for (int i = 0; i < (2 * radius_x + 1) * (2 * radius_y + 1); i++) {
+            ker_vec.push_back(1.0 / ((2 * radius_x + 1) * (2 * radius_y + 1)));
+        }
+    } else if (method == Blur::Gaussian) {
+        double sigma_x = (2 * radius_x) / 6.0;
+        double sigma_y = (2 * radius_y) / 6.0;
+        for (int i = -radius_x; i <= radius_x; i++) {
+            for (int j = -radius_y; j <= radius_y; j++) {
+                ker_vec.push_back(
+                    pow(M_E, -((double)i * i / (2.0 * sigma_x * sigma_x) + (double)j * j / (2.0 * sigma_y * sigma_y))) /
+                    (2.0 * M_PI * sigma_x * sigma_y));
+            }
+        }
+
+    } else {
+        throw std::invalid_argument("The blur method is not yet supported\n");
+    }
+    convolve_clamp_to_border(0, (2 * radius_x + 1), (2 * radius_y + 1), &ker_vec[0], radius_x, radius_y);
+    convolve_clamp_to_border(1, (2 * radius_x + 1), (2 * radius_y + 1), &ker_vec[0], radius_x, radius_y);
+    convolve_clamp_to_border(2, (2 * radius_x + 1), (2 * radius_y + 1), &ker_vec[0], radius_x, radius_y);
+
+    return *this;
+}
