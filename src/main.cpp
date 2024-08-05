@@ -241,13 +241,20 @@ void test1() {
 
 int main(int argc, char** argv) {
 
+    // Image colorful("images/clear_bg.png");
     Image colorful("images/colorful.jpg");
-    std::vector<std::pair<double, Color>> points{{0.0, Color(0, 0, 0)}, {1.0, Color(255, 255, 255)}};
-    Image preview = colorful.preview_color_ramp(points);
-    preview.color_reduce(ColorDepth::Bit_8, true);
-    colorful.color_reduce(ColorDepth::Bit_8, true);
-    preview.write("preview.png");
-    colorful.write("reduce_2.png");
+    Image colorful_rampped("images/colorful.jpg");
+    std::vector<std::pair<double, Color>> points{{0.4, Color(0, 0, 0)}, {0.7, Color(255, 255, 255)}};
+    colorful_rampped.color_ramp(points);
+    colorful_rampped.write("colorful_rampped.png");
+    Image fac("images/0_separate.png");
+    colorful.alpha_overlay(&fac, &colorful_rampped, 300, 300, 300, 300);
+    colorful.write("alpha_overlay.png");
+
+    // preview.color_reduce(ColorDepth::Bit_8, true);
+    // colorful.color_reduce(ColorDepth::Bit_8, true);
+    // preview.write("preview.png");
+    // colorful.write("reduce_2.png");
     // colorful.blur(Blur::Gaussian, 400, 400);
     // colorful.saturation(-1, -1);
     // colorful.exposure(-1);

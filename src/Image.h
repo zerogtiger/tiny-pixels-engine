@@ -27,6 +27,7 @@ struct Image {
 
     Image(const char* filename);
     Image(int w, int h, int channels);
+    Image(int w, int h, int channels, Color fill);
     Image(const Image& img);
     // Image(const Image& img, int channel);
     ~Image(); // destructor
@@ -176,5 +177,10 @@ struct Image {
                                std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
 
     Image& blur(Blur method = Blur::Gaussian, int radius_x = 5, int radius_y = 5);
+
+    Image& alpha_overlay(Image* fac, int fac_x, int fac_y, Image* other, int other_x, int other_y);
+    Image& alpha_overlay(Color color, Image* other, int other_x, int other_y);
+    Image& alpha_overlay(Color color, Color other);
+    Image& alpha_overlay(Image* fac, int fac_x, int fac_y, Color other);
 };
 #endif

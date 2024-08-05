@@ -40,6 +40,19 @@ Image::Image(int w, int h, int channels)
     memset(data, 0, size);
     // all black "image"
 }
+Image::Image(int w, int h, int channels, Color fill)
+    : w(w), h(h), channels(channels) // initializer list
+{
+    size = w * h * channels;
+    data = new uint8_t[size];
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            for (int cd = 0; cd < channels; cd++) {
+                set(i, j, cd, fill.get(cd));
+            }
+        }
+    }
+}
 Image::Image(const Image& img) : Image(img.w, img.h, img.channels) {
     memcpy(data, img.data, img.size);
 }
@@ -101,7 +114,7 @@ uint8_t Image::get(uint32_t row, uint32_t col, uint32_t channel) {
     return data[(row * w + col) * channels + channel];
 }
 uint8_t Image::get_or_default(int row, int col, uint32_t channel, uint8_t fallback) {
-    if (row < 0 || row >= w || col < 0 || col >= h) {
+    if (row < 0 || row >= h || col < 0 || col >= w || channel >= channels) {
         return fallback;
     }
     else {
@@ -2151,4 +2164,49 @@ Image& Image::blur(Blur method, int radius_x, int radius_y) {
     convolve_clamp_to_border(2, (2 * radius_x + 1), (2 * radius_y + 1), &ker_vec[0], radius_x, radius_y);
 
     return *this;
+}
+// Notes: requires better support for clear bg image
+Image& Image::alpha_overlay(Image* fac, int fac_x, int fac_y, Image* other, int other_x, int other_y) {
+    uint8_t* new_data = data;
+    size_t new_size = size;
+    int new_channels = channels;
+    double factor;
+
+    if (other->channels > channels) {
+        new_channels = other->channels;
+        new_size = w * h * new_channels;
+        new_data = new uint8_t[new_size];
+    }
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            factor = (double) fac->get_or_default(r - fac_y, c - fac_x, 0, 0) / 255.0;
+            for (int cd = 0; cd < new_channels; cd++) {
+                new_data[(r * w + c) * new_channels + cd] =
+                    (uint8_t) round(factor * other->get_or_default(r - other_y, c - other_x, cd, cd == 3 ? 255 : 0) +
+                                    (1 - factor) * get_or_default(r, c, cd, cd == 3 ? 255 : 0));
+            }
+        }
+    }
+    if (other->channels > channels) {
+        delete data;
+    }
+    data = new_data;
+    size = new_size;
+    channels = new_channels;
+    printf("%d\n", channels);
+
+    return *this;
+}
+Image& Image::alpha_overlay(Color color, Image* other, int other_x, int other_y) {
+    Image c(w, h, 3, color);
+    return alpha_overlay(&c, 0, 0, other, other_x, other_y);
+}
+Image& Image::alpha_overlay(Color color, Color other) {
+    Image c(w, h, 3, color);
+    Image o(w, h, 3, other);
+    return alpha_overlay(&c, 0, 0, &o, 0, 0);
+}
+Image& Image::alpha_overlay(Image* fac, int fac_x, int fac_y, Color other) {
+    Image o(w, h, 3, other);
+    return alpha_overlay(fac, fac_x, fac_y, &o, 0, 0);
 }

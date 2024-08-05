@@ -21,7 +21,7 @@ A C++ based image and graphics processing library implemented from scratch.
         - [ ] Eyedropper
     - [x] False color
     - [ ] Mixing options
-        - [ ] Alpha over
+        - [x] Alpha over
         - [x] Separate colors (RGBA channels)
         - [x] Combine colors (RGBA channels)
         - [x] Color ramp
@@ -44,7 +44,7 @@ A C++ based image and graphics processing library implemented from scratch.
         - [x] Gaussian
         - [ ] Bokeh
     - [ ] Anti-aliasing
-    - [ ] Masking
+    - [x] Masking
     - [ ] Vignette
     - [ ] Color matrix
 - Transform
