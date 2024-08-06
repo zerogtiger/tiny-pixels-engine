@@ -65,16 +65,19 @@ A C++ based image and graphics processing library implemented from scratch.
     - [ ] Frame
     - [x] Text overlay
     - [ ] Procedural texture generation
+        - [x] White noise
+        - [ ] (Improved) Perlin noise
         - [ ] Brick
         - [ ] Gradient
         - [ ] Musgrave
-        - [ ] Noise
+        - [ ] Simplex noise
         - [ ] Voronoi
         - [ ] Wave
 - Drawing
-    - [ ] Lines
-    - [ ] Rectangles
-    - [ ] Ellipse
+    - [ ] Lines (unuseful)
+    - [x] Rectangles
+        - [ ] Support percentage of image
+    - [x] Ellipse
 - Documentation (not started)
 
 ## High Priority Enhancements/Bug Fixes

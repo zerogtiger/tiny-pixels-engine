@@ -241,18 +241,23 @@ void test1() {
 
 int main(int argc, char** argv) {
     Image colorful("images/colorful.jpg");
+    Image white_noise = colorful.white_noise();
+    white_noise.write("white_noise.png");
+    // Image mask = colorful.ellipse_mask(180, 200, 180, 80);
+    // // Image mask = colorful.rect_mask(40, 40, 80, 80);
+    // mask.write("ellipse_mask.png");
     // colorful.vignette(0.4, 0);
-    std::vector<std::vector<double>> matrix = {
-        {0.393,0.349,0.272,0,0},
-        {0.769,0.686,0.534,0,0},
-        {0.189,0.168,0.131,0,0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 0, 1}
-    };
-    colorful.color_matrix(matrix);
+    // std::vector<std::vector<double>> matrix = {
+    //     {0.393,0.349,0.272,0,0},
+    //     {0.769,0.686,0.534,0,0},
+    //     {0.189,0.168,0.131,0,0},
+    //     {0, 0, 0, 1, 0},
+    //     {0, 0, 0, 0, 1}
+    // };
+    // colorful.color_matrix(matrix);
 
 
-    colorful.write("color_matrix.png");
+    // colorful.write("color_matrix.png");
 
     // Image colorful("images/clear_bg.png");
     // Image colorful_rampped("images/colorful.jpg");

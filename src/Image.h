@@ -186,5 +186,11 @@ struct Image {
     Image& vignette(double fact_x = 0, double fact_y = 0);
 
     Image& color_matrix(std::vector<std::vector<double>> matrix);
+
+    Image& rect_mask(double start_x, double start_y, double end_x, double end_y, Color fill = Color(255, 255, 255));
+    Image& ellipse_mask(double center_x, double center_y, double radius_x, double radius_y,
+                        Color fill = Color(255, 255, 255));
+
+    Image& white_noise(double min = 0.0, double max = 255.0, bool color = true, int seed = 0);
 };
 #endif

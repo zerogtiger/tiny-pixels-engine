@@ -4,8 +4,10 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -2250,4 +2252,65 @@ Image& Image::color_matrix(std::vector<std::vector<double>> matrix) {
     }
 
     return *this;
+}
+
+Image& Image::rect_mask(double start_x, double start_y, double end_x, double end_y, Color fill) {
+    Image& ret = *(new Image(w, h, 3));
+    if (start_x > end_x) {
+        std::swap(start_x, end_x);
+    }
+    if (start_y > end_y) {
+        std::swap(start_y, end_y);
+    }
+
+    for (int r = std::max(start_y, 0.0); r < std::min(end_y, (double) h); r++) {
+        for (int c = std::max(start_x, 0.0); c < std::min(end_x, (double) w); c++) {
+            ret.set(r, c, 0, fill.r);
+            ret.set(r, c, 1, fill.g);
+            ret.set(r, c, 2, fill.b);
+        }
+    }
+
+    return ret;
+}
+
+Image& Image::ellipse_mask(double center_x, double center_y, double radius_x, double radius_y, Color fill) {
+    Image& ret = *(new Image(w, h, 3));
+    double start_x, end_x, start_y = std::max(0.0, center_y - radius_y),
+                           end_y = std::min((double) h, center_y + radius_y);
+    double tmp;
+    for (int r = start_y; r < end_y; r++) {
+        tmp = sqrt(std::abs(pow(radius_x, 2) - pow(radius_x, 2) * pow(center_y - r, 2) / pow(radius_y, 2)));
+        for (int c = std::max(0.0, center_x - tmp); c < std::min((double) w, center_x + tmp); c++) {
+            ret.set(r, c, 0, fill.r);
+            ret.set(r, c, 1, fill.g);
+            ret.set(r, c, 2, fill.b);
+        }
+    }
+
+    return ret;
+}
+Image& Image::white_noise(double min, double max, bool color, int seed) {
+
+    Image& ret = *(new Image(w, h, 3));
+    double tmp;
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<> dist(min, max);
+
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            if (color) {
+                for (int cd = 0; cd < 3; cd++) {
+                    ret.set(r, c, cd, dist(gen));
+                }
+            }
+            else {
+                tmp = dist(gen);
+                for (int cd = 0; cd < 3; cd++) {
+                    ret.set(r, c, cd, tmp);
+                }
+            }
+        }
+    }
+    return ret;
 }
