@@ -192,5 +192,7 @@ struct Image {
                         Color fill = Color(255, 255, 255));
 
     Image& white_noise(double min = 0.0, double max = 255.0, bool color = true, int seed = 0);
+    Image& perlin_noise(double min = 0.0, double max = 255.0, int grid_size = 400, double freq = 1, double amp = 1,
+                        int seed = 0);
 };
 #endif

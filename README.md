@@ -66,7 +66,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [x] Text overlay
     - [ ] Procedural texture generation
         - [x] White noise
-        - [ ] (Improved) Perlin noise
+        - [x] (Improved) Perlin noise
         - [ ] Brick
         - [ ] Gradient
         - [ ] Musgrave
@@ -87,6 +87,7 @@ A C++ based image and graphics processing library implemented from scratch.
 - [x] Refactor `Adjustment`, `Color` and `Font` from `image.h`
 
 ## Medium Priority Enhancements/Bug Fixes
+- [ ] Optimize memory for `Image::perlin_noise` (overuse of array memory for gradient vectors)
 - [ ] Different interpolation methods for each channel for RGB curves
 - [ ] Show area instead of line in RGB curve preview
 - [ ] Show control points in RGB curve preview

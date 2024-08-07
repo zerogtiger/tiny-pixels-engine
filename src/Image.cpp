@@ -2314,3 +2314,58 @@ Image& Image::white_noise(double min, double max, bool color, int seed) {
     }
     return ret;
 }
+Image& Image::perlin_noise(double min, double max, int grid_size, double freq, double amp, int seed) {
+    Interpolation I;
+    Image& ret = *(new Image(w, h, 3));
+
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<> dist(0.0, 1.0);
+    int rp = (int) ((double) h * freq / grid_size + 2), cp = (int) ((double) w * freq / grid_size + 2);
+    std::pair<double, double> p[rp][cp];
+    int dir_x, dir_y;
+    double dc, dr, dp[2][2], i_x1, i_x2, val[h][w];
+
+    double mx = -INFINITY;
+    double mn = INFINITY;
+
+    for (int i = 0; i < rp; i++) {
+        for (int j = 0; j < cp; j++) {
+            dir_x = dist(gen) > 0.5 ? 1 : -1;
+            dir_y = dist(gen) > 0.5 ? 1 : -1;
+            p[i][j].first = dist(gen) * dir_x;
+            p[i][j].second = sqrt(1 - pow(p[i][j].first, 2)) * dir_y;
+        }
+    }
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+
+            dc = (double) c * freq / grid_size;
+            dr = (double) r * freq / grid_size;
+            dir_x = floor(dc);
+            dir_y = floor(dr);
+            dr = dr - dir_y;
+            dc = dc - dir_x;
+            dp[0][0] = I.dot_product_2d(p[dir_y][dir_x].first, p[dir_y][dir_x].second, dc, dr);
+            dp[1][0] = I.dot_product_2d(p[dir_y + 1][dir_x].first, p[dir_y + 1][dir_x].second, dc, dr - 1);
+            dp[0][1] = I.dot_product_2d(p[dir_y][dir_x + 1].first, p[dir_y][dir_x + 1].second, dc - 1, dr);
+            dp[1][1] = I.dot_product_2d(p[dir_y + 1][dir_x + 1].first, p[dir_y + 1][dir_x + 1].second, dc - 1, dr - 1);
+
+            dr = 6 * pow(dr, 5) - 15 * pow(dr, 4) + 10 * pow(dr, 3);
+            dc = 6 * pow(dc, 5) - 15 * pow(dc, 4) + 10 * pow(dc, 3);
+
+            val[r][c] = (dp[0][0] * (1 - dr) * (1 - dc) + dp[1][0] * (1 - dc) * dr + dp[0][1] * dc * (1 - dr) +
+                         dp[1][1] * dc * dr);
+            mx = std::max(mx, val[r][c]);
+            mn = std::min(mn, val[r][c]);
+        }
+    }
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            val[r][c] = (val[r][c] - mn) / (mx - mn);
+            ret.set(r, c, 0, round(val[r][c] * (max - min) * amp + min));
+            ret.set(r, c, 1, round(val[r][c] * (max - min) * amp + min));
+            ret.set(r, c, 2, round(val[r][c] * (max - min) * amp + min));
+        }
+    }
+    return ret;
+}

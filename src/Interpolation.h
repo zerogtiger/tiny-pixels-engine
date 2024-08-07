@@ -203,6 +203,10 @@ class Interpolation {
         }
         return ret;
     }
+
+    static double dot_product_2d(double lx1, double ly1, double lx2, double ly2) {
+        return lx1 * lx2 + ly1 * ly2;
+    }
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <i386/endian.h>
 #include <iostream>
 #include <iterator>
 #include <pthread.h>
@@ -241,8 +242,47 @@ void test1() {
 
 int main(int argc, char** argv) {
     Image colorful("images/colorful.jpg");
-    Image white_noise = colorful.white_noise();
-    white_noise.write("white_noise.png");
+    Image *pn[6];
+    double freq = 1, amp = 1;
+    for (int i = 0; i < 6; i++) {
+        freq *= 2;
+        amp /= 2;
+        pn[i] = &colorful.perlin_noise(0, 255, 400, freq, amp);
+    }
+    for (int r = 0; r < colorful.h; r++) {
+        for (int c = 0; c < colorful.w; c++) {
+            double tmp = 0;
+            for (int i = 0; i < 6; i++) {
+                tmp +=pn[i]->get(r, c, 0);
+            }
+            colorful.set(r, c, 0, tmp);
+            colorful.set(r, c, 1, tmp);
+            colorful.set(r, c, 2, tmp);
+        }
+    }
+    colorful.write("pn_octave.png");
+        
+
+    // Image p_noise_1 = colorful.perlin_noise(0, 255, 400, 1, 0.5, 0);
+    // Image p_noise_2 = colorful.perlin_noise(0, 255, 400, 2, 0.25, 0);
+    // Image p_noise_3 = colorful.perlin_noise(0, 255, 400, 4, 0.125, 0);
+    // Image p_noise_4 = colorful.perlin_noise(0, 255, 400, 8, 0.0625, 0);
+    // p_noise_1.write("p_noise_1.png");
+    // for (int r = 0; r < p_noise_1.h; r++) {
+    //     for (int c = 0; c < p_noise_1.w; c++) {
+    //         double tmp = std::clamp(p_noise_1.get(r, c, 0) + p_noise_2.get(r, c, 0) + p_noise_3.get(r, c, 0) +
+    //                                     p_noise_4.get(r, c, 0),
+    //                                 0, 255);
+    //         p_noise_1.set(r, c, 0, tmp);
+    //         p_noise_1.set(r, c, 1, tmp);
+    //         p_noise_1.set(r, c, 2, tmp);
+    //     }
+    // }
+    // p_noise_1.write("p_noise_octave.png");
+    // p_noise_4.write("p_noise_4.png");
+
+    // Image white_noise = colorful.white_noise();
+    // white_noise.write("white_noise.png");
     // Image mask = colorful.ellipse_mask(180, 200, 180, 80);
     // // Image mask = colorful.rect_mask(40, 40, 80, 80);
     // mask.write("ellipse_mask.png");
@@ -255,7 +295,6 @@ int main(int argc, char** argv) {
     //     {0, 0, 0, 0, 1}
     // };
     // colorful.color_matrix(matrix);
-
 
     // colorful.write("color_matrix.png");
 
