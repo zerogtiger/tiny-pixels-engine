@@ -1,3 +1,4 @@
+#include "Adjustment.h"
 #include "Color.h"
 #include "Enums.h"
 #include "Image.h"
@@ -242,25 +243,33 @@ void test1() {
 
 int main(int argc, char** argv) {
     Image colorful("images/colorful.jpg");
-    Image *pn[6];
-    double freq = 1, amp = 1;
-    for (int i = 0; i < 6; i++) {
-        freq *= 2;
-        amp /= 2;
-        pn[i] = &colorful.perlin_noise(0, 255, 400, freq, amp);
-    }
-    for (int r = 0; r < colorful.h; r++) {
-        for (int c = 0; c < colorful.w; c++) {
-            double tmp = 0;
-            for (int i = 0; i < 6; i++) {
-                tmp +=pn[i]->get(r, c, 0);
-            }
-            colorful.set(r, c, 0, tmp);
-            colorful.set(r, c, 1, tmp);
-            colorful.set(r, c, 2, tmp);
-        }
-    }
-    colorful.write("pn_octave.png");
+    Adjustment A = Adjustment::create_adj_lgg(0, 1, 1.5);
+    colorful.tone_correct(100, 200, A, A, A);
+    // colorful.HSV(0, 1, 0);
+    // colorful.contrast(0, 150);
+    // colorful.contrast(1, 150);
+    // colorful.contrast(2, 150);
+    colorful.write("adj.png");
+    // Image colorful("images/colorful.jpg");
+    // Image *pn[6];
+    // double freq = 1, amp = 1;
+    // for (int i = 0; i < 6; i++) {
+    //     freq *= 2;
+    //     amp /= 2;
+    //     pn[i] = &colorful.perlin_noise(0, 255, 400, freq, amp);
+    // }
+    // for (int r = 0; r < colorful.h; r++) {
+    //     for (int c = 0; c < colorful.w; c++) {
+    //         double tmp = 0;
+    //         for (int i = 0; i < 6; i++) {
+    //             tmp +=pn[i]->get(r, c, 0);
+    //         }
+    //         colorful.set(r, c, 0, tmp);
+    //         colorful.set(r, c, 1, tmp);
+    //         colorful.set(r, c, 2, tmp);
+    //     }
+    // }
+    // colorful.write("pn_octave.png");
         
 
     // Image p_noise_1 = colorful.perlin_noise(0, 255, 400, 1, 0.5, 0);

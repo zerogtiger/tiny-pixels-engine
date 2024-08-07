@@ -1,5 +1,14 @@
-# Graphics Processor
-A C++ based image and graphics processing library implemented from scratch.
+# Tiny-Pixels Engine
+
+A C++ graphics compositing library.
+
+## Documentation
+
+See `docs.md` for details.
+
+## What Tiny-Pixels can do for you
+
+Examples coming soon.
 
 ## To-do
 - Color
@@ -78,7 +87,7 @@ A C++ based image and graphics processing library implemented from scratch.
     - [x] Rectangles
         - [ ] Support percentage of image
     - [x] Ellipse
-- Documentation (not started)
+- Documentation (on-going)
 
 ## High Priority Enhancements/Bug Fixes
 - [x] Color ramp linear and b-spline interpolation shows weird red when using monotone control points
