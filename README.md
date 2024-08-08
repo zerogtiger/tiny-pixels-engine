@@ -96,6 +96,7 @@ Examples coming soon.
 - [x] Refactor `Adjustment`, `Color` and `Font` from `image.h`
 
 ## Medium Priority Enhancements/Bug Fixes
+- [ ] Standardize `Color` class function design
 - [ ] Optimize memory for `Image::perlin_noise` (overuse of array memory for gradient vectors)
 - [ ] Different interpolation methods for each channel for RGB curves
 - [ ] Show area instead of line in RGB curve preview

@@ -195,7 +195,7 @@ struct Color {
         return Color(r / div, g / div, b / div, a / div);
     }
 
-    double luminance(double r, double g, double b) {
+    static double luminance(double r, double g, double b) {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     }
 
