@@ -46,6 +46,8 @@ Stores data for a particular color in RGBA format.
 
 #### Member variables
 
+Representing the RGBA channels of a certain color:
+
 - `double r`
 - `double g`
 - `double b`
@@ -152,6 +154,23 @@ Note that it may also represent color in HSV where `r`, `g`, `b` corresponds to 
 
 ### Font (`Font.h`)
 
+#### Member variables
+
+Font object from the `schrift` library.
+
+- `SFT sft = {NULL, 12, 12, 0, 0, SFT_DOWNWARD_Y | SFT_RENDER_IMAGE};`
+
+#### Member functions
+
+- Constructor
+    
+    - `Font(const char* fontfile, uint16_t size);`
+
+        Initializes the font object with the provided TrueType Font (`.ttf`) with the provided size.
+
+- `void setSize(uint16_t size);`
+
+    Sets the font size of the calling object to the provided size.
 
 ### Image (`Image.h`)
 
