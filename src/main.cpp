@@ -25,9 +25,9 @@ void matrix_scalar(double* arr, int size, double scalar) {
 
 int main(int argc, char** argv) {
 
-    Image colorful("images/clear_bg.png");
-    colorful.shade();
-    colorful.write("images/clear_bg_shade.png");
+    Image colorful("images/colorful.jpg");
+    colorful.shade_h();
+    colorful.write("images/colorful_shade_h.png");
 }
 
 void test1() {

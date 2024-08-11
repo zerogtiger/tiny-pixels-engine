@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -604,8 +603,8 @@ void Image::pointwise_product(uint64_t l, std::complex<double> a[], std::complex
     }
 }
 
-Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
-    // calculate padding
+std::complex<double>* Image::fd_convolve_clamp_to_zero_raw(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+    // calculate paddina
     uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
     uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
     uint64_t psize = pw * ph;
@@ -628,6 +627,12 @@ Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_
     pointwise_product(psize, pad_img, pad_ker, pad_img);
     idft_2D(ph, pw, pad_img, pad_img);
 
+    return pad_img;
+}
+Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    std::complex<double>* pad_img = fd_convolve_clamp_to_zero_raw(channel, ker_w, ker_h, ker, cr, cc);
     if (normalize) {
         double mx = -INFINITY, mn = INFINITY;
         for (uint32_t i = 0; i < h; i++) {
@@ -651,7 +656,8 @@ Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_
 
     return *this;
 }
-Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+
+std::complex<double>* Image::fd_convolve_clamp_to_border_raw(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
     // calculate padding
     uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
     uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
@@ -676,7 +682,13 @@ Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint3
     dft_2D(ph, pw, pad_ker, pad_ker);
     pointwise_product(psize, pad_img, pad_ker, pad_img);
     idft_2D(ph, pw, pad_img, pad_img);
+    return pad_img;
+}
 
+Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    std::complex<double>* pad_img = fd_convolve_clamp_to_border_raw(channel, ker_w, ker_h, ker, cr, cc);
     if (normalize) {
         double mx = -INFINITY, mn = INFINITY;
         for (uint32_t i = 0; i < h; i++) {
@@ -700,7 +712,8 @@ Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint3
 
     return *this;
 }
-Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+
+std::complex<double>* Image::fd_convolve_cyclic_raw(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
     // calculate padding
     uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
     uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
@@ -726,11 +739,18 @@ Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h
     pointwise_product(psize, pad_img, pad_ker, pad_img);
     idft_2D(ph, pw, pad_img, pad_img);
 
+    return pad_img;
+}
+Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+    uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
+    uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
+    std::complex<double>* pad_img = fd_convolve_cyclic_raw(channel, ker_w, ker_h, ker, cr, cc);
+
     if (normalize) {
         double mx = -INFINITY, mn = INFINITY;
         for (uint32_t i = 0; i < h; i++) {
             for (uint32_t j = 0; j < w; j++) {
-               mx = fmax(mx, pad_img[i * pw + j].real());
+                mx = fmax(mx, pad_img[i * pw + j].real());
                 mn = fmin(mn, pad_img[i * pw + j].real());
             }
         }
@@ -749,6 +769,7 @@ Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h
     }
     return *this;
 }
+
 Image& Image::convolve_linear(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
     if (ker_w * ker_h > 224) {
         return fd_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc, normalize);
@@ -791,8 +812,8 @@ Image& Image::shade_h() {
     double gaussian_blur[] = {1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0};
     double scharr_y[] = {47, 162, 47, 0, 0, 0, -47, -162, -47};
     grayscale_avg();
-    convolve_clamp_to_border(0, 3, 3, gaussian_blur, 1, 1);
-    convolve_clamp_to_border(0, 3, 3, scharr_y, 1, 1, true);
+    convolve_linear(0, 3, 3, gaussian_blur, 1, 1);
+    convolve_linear(0, 3, 3, scharr_y, 1, 1, true);
     if (channels >= 3) {
         for (int i = 0; i < size; i += channels) {
             data[i + 1] = data[i + 2] = data[i];
@@ -834,7 +855,4 @@ Image& Image::shade() {
     }
     return *this;
 }
-Image& Image::edge(double detail, bool gradient) {
-
-    return *this; 
-}
+Image& Image::edge(double detail, bool gradient) { return *this; }
