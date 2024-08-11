@@ -1,6 +1,11 @@
+#include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
+#include <string>
+#include <sys/stat.h>
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
@@ -30,8 +35,14 @@ Image::Image(const Image& img) : Image(img.w, img.h, img.channels) { memcpy(data
 Image::~Image() { stbi_image_free(data); }
 
 bool Image::read(const char* filename) {
-    data = stbi_load(filename, &w, &h, &channels, 0);
-    return data != NULL;
+    struct stat buffer;
+    if (stat(filename, &buffer) == 0) {
+        data = stbi_load(filename, &w, &h, &channels, 0);
+        return data != NULL;
+    } else {
+        throw std::invalid_argument(std::string{"Unable to find file "} + filename);
+        return false;
+    }
 }
 bool Image::write(const char* filename) {
     ImageType type = getFileType(filename);
@@ -180,38 +191,45 @@ Image& Image::diffmap(Image& img) {
     return *this;
 }
 
-Image& Image::std_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
-    uint8_t new_data[w * h];
+Image& Image::std_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+    double new_data[w * h];
     uint64_t center = cr * ker_w + cc;
     for (uint64_t k = channel; k < size; k += channels) {
         double c = 0;
-        for (long i = -((long)cr); i < (long)ker_h - cr; i++) {
+        for (long i = -((long)cr); i < (long)ker_h - cr; ++i) {
             long row = ((long)k / channels) / w - i;
-            if (row < 0) {
-                row = row % h + h;
-            } else if (row > h - 1) {
-                row %= h;
+            if (row < 0 || row > h - 1) {
+                continue;
             }
-            for (long j = -((long)cc); j < (long)ker_w - cc; j++) {
+            for (long j = -((long)cc); j < (long)ker_w - cc; ++j) {
                 long col = ((long)k / channels) % w - j;
-                if (col < 0) {
-                    col = col % w + w;
-                } else if (col > w - 1) {
-                    col %= w;
+                if (col < 0 || col > w - 1) {
+                    continue;
                 }
                 c += ker[center + i * (long)ker_w + j] * data[(row * w + col) * channels + channel];
             }
         }
-        new_data[k / channels] = (uint8_t)BYTE_BOUND(round(c));
+        new_data[k / channels] = c;
     }
+    if (normalize) {
+        double mx = -INFINITY, mn = INFINITY;
+        for (uint64_t k = channel; k < size; k += channels) {
+            mx = fmax(mx, new_data[k / channels]);
+            mn = fmin(mn, new_data[k / channels]);
+        }
+        for (uint64_t k = channel; k < size; k += channels) {
+            new_data[k / channels] = (255.0 * (new_data[k / channels] - mn) / (mx - mn));
+        }
+    }
+
     for (uint64_t k = channel; k < size; k += channels) {
-        data[k] = new_data[k / channels];
+        data[k] = (uint8_t)BYTE_BOUND(round(new_data[k / channels]));
     }
     return *this;
 }
 
-Image& Image::std_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
-    uint8_t new_data[w * h];
+Image& Image::std_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+    double new_data[w * h];
     uint64_t center = cr * ker_w + cc;
     for (uint64_t k = channel; k < size; k += channels) {
         double c = 0;
@@ -232,39 +250,66 @@ Image& Image::std_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint
                 c += ker[center + i * (long)ker_w + j] * data[(row * w + col) * channels + channel];
             }
         }
-        new_data[k / channels] = (uint8_t)BYTE_BOUND(round(c));
+        new_data[k / channels] = c;
     }
+    if (normalize) {
+        double mx = -INFINITY, mn = INFINITY;
+        for (uint64_t k = channel; k < size; k += channels) {
+            mx = fmax(mx, new_data[k / channels]);
+            mn = fmin(mn, new_data[k / channels]);
+        }
+        for (uint64_t k = channel; k < size; k += channels) {
+            new_data[k / channels] = (255.0 * (new_data[k / channels] - mn) / (mx - mn));
+        }
+    }
+
     for (uint64_t k = channel; k < size; k += channels) {
-        data[k] = new_data[k / channels];
+        data[k] = (uint8_t)BYTE_BOUND(round(new_data[k / channels]));
     }
     return *this;
 }
 
-Image& Image::std_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
-    uint8_t new_data[w * h];
+Image& Image::std_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
+    double new_data[w * h];
     uint64_t center = cr * ker_w + cc;
     for (uint64_t k = channel; k < size; k += channels) {
         double c = 0;
-        for (long i = -((long)cr); i < (long)ker_h - cr; ++i) {
+        for (long i = -((long)cr); i < (long)ker_h - cr; i++) {
             long row = ((long)k / channels) / w - i;
-            if (row < 0 || row > h - 1) {
-                continue;
+            if (row < 0) {
+                row = row % h + h;
+            } else if (row > h - 1) {
+                row %= h;
             }
-            for (long j = -((long)cc); j < (long)ker_w - cc; ++j) {
+            for (long j = -((long)cc); j < (long)ker_w - cc; j++) {
                 long col = ((long)k / channels) % w - j;
-                if (col < 0 || col > w - 1) {
-                    continue;
+                if (col < 0) {
+                    col = col % w + w;
+                } else if (col > w - 1) {
+                    col %= w;
                 }
                 c += ker[center + i * (long)ker_w + j] * data[(row * w + col) * channels + channel];
             }
         }
-        new_data[k / channels] = (uint8_t)BYTE_BOUND(round(c));
+        new_data[k / channels] = c;
     }
+    if (normalize) {
+        double mx = -INFINITY, mn = INFINITY;
+        for (uint64_t k = channel; k < size; k += channels) {
+            mx = fmax(mx, new_data[k / channels]);
+            mn = fmin(mn, new_data[k / channels]);
+        }
+        for (uint64_t k = channel; k < size; k += channels) {
+            new_data[k / channels] = (255.0 * (new_data[k / channels] - mn) / (mx - mn));
+        }
+    }
+
     for (uint64_t k = channel; k < size; k += channels) {
-        data[k] = new_data[k / channels];
+        data[k] = (uint8_t)BYTE_BOUND(round(new_data[k / channels]));
     }
     return *this;
 }
+
 Image& Image::flip_x() {
     uint8_t tmp[channels], *px1, *px2;
     for (int y = 0; y < h / 2; y++) {
@@ -559,7 +604,7 @@ void Image::pointwise_product(uint64_t l, std::complex<double> a[], std::complex
     }
 }
 
-Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
     // calculate padding
     uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
     uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
@@ -583,6 +628,20 @@ Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_
     pointwise_product(psize, pad_img, pad_ker, pad_img);
     idft_2D(ph, pw, pad_img, pad_img);
 
+    if (normalize) {
+        double mx = -INFINITY, mn = INFINITY;
+        for (uint32_t i = 0; i < h; i++) {
+            for (uint32_t j = 0; j < w; j++) {
+                mx = fmax(mx, pad_img[i * pw + j].real());
+                mn = fmin(mn, pad_img[i * pw + j].real());
+            }
+        }
+        for (uint32_t i = 0; i < h; i++) {
+            for (uint32_t j = 0; j < w; j++) {
+                pad_img[i * pw + j].real(255.0 * (pad_img[i * pw + j].real() - mn) / (mx - mn));
+            }
+        }
+    }
     // update pixel data
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
@@ -592,7 +651,7 @@ Image& Image::fd_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_
 
     return *this;
 }
-Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
     // calculate padding
     uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
     uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
@@ -618,15 +677,30 @@ Image& Image::fd_convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint3
     pointwise_product(psize, pad_img, pad_ker, pad_img);
     idft_2D(ph, pw, pad_img, pad_img);
 
+    if (normalize) {
+        double mx = -INFINITY, mn = INFINITY;
+        for (uint32_t i = 0; i < h; i++) {
+            for (uint32_t j = 0; j < w; j++) {
+                mx = fmax(mx, pad_img[i * pw + j].real());
+                mn = fmin(mn, pad_img[i * pw + j].real());
+            }
+        }
+        for (uint32_t i = 0; i < h; i++) {
+            for (uint32_t j = 0; j < w; j++) {
+                pad_img[i * pw + j].real(255.0 * (pad_img[i * pw + j].real() - mn) / (mx - mn));
+            }
+        }
+    }
     // update pixel data
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
-            data[(i * w + j) * channels + channel] = BYTE_BOUND((uint8_t)round(pad_img[i * pw + j].real()));
+            data[(i * w + j) * channels + channel] = (uint8_t)BYTE_BOUND(round(pad_img[i * pw + j].real()));
         }
     }
+
     return *this;
 }
-Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
     // calculate padding
     uint32_t pw = 1 << ((uint8_t)ceil(log2(w + ker_w - 1)));
     uint32_t ph = 1 << ((uint8_t)ceil(log2(h + ker_h - 1)));
@@ -652,6 +726,21 @@ Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h
     pointwise_product(psize, pad_img, pad_ker, pad_img);
     idft_2D(ph, pw, pad_img, pad_img);
 
+    if (normalize) {
+        double mx = -INFINITY, mn = INFINITY;
+        for (uint32_t i = 0; i < h; i++) {
+            for (uint32_t j = 0; j < w; j++) {
+               mx = fmax(mx, pad_img[i * pw + j].real());
+                mn = fmin(mn, pad_img[i * pw + j].real());
+            }
+        }
+        for (uint32_t i = 0; i < h; i++) {
+            for (uint32_t j = 0; j < w; j++) {
+                pad_img[i * pw + j].real(255.0 * (pad_img[i * pw + j].real() - mn) / (mx - mn));
+            }
+        }
+    }
+
     // update pixel data
     for (uint32_t i = 0; i < h; i++) {
         for (uint32_t j = 0; j < w; j++) {
@@ -660,25 +749,25 @@ Image& Image::fd_convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h
     }
     return *this;
 }
-Image& Image::convolve_linear(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+Image& Image::convolve_linear(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
     if (ker_w * ker_h > 224) {
-        return fd_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc);
+        return fd_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc, normalize);
     } else {
-        return std_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc);
+        return std_convolve_clamp_to_zero(channel, ker_w, ker_h, ker, cr, cc, normalize);
     }
 }
-Image& Image::convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+Image& Image::convolve_clamp_to_border(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
     if (ker_w * ker_h > 224) {
-        return fd_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc);
+        return fd_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc, normalize);
     } else {
-        return std_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc);
+        return std_convolve_clamp_to_border(channel, ker_w, ker_h, ker, cr, cc, normalize);
     }
 }
-Image& Image::convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc) {
+Image& Image::convolve_cyclic(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize) {
     if (ker_w * ker_h > 224) {
-        return fd_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc);
+        return fd_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc, normalize);
     } else {
-        return std_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc);
+        return std_convolve_cyclic(channel, ker_w, ker_h, ker, cr, cc, normalize);
     }
 }
 Image& Image::brightness(uint8_t channel, double brightness_delta) {
@@ -697,4 +786,55 @@ Image& Image::contrast(uint8_t channel, double contrast_delta) {
         }
     }
     return *this;
+}
+Image& Image::shade_h() {
+    double gaussian_blur[] = {1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0};
+    double scharr_y[] = {47, 162, 47, 0, 0, 0, -47, -162, -47};
+    grayscale_avg();
+    convolve_clamp_to_border(0, 3, 3, gaussian_blur, 1, 1);
+    convolve_clamp_to_border(0, 3, 3, scharr_y, 1, 1, true);
+    if (channels >= 3) {
+        for (int i = 0; i < size; i += channels) {
+            data[i + 1] = data[i + 2] = data[i];
+        }
+    }
+    return *this;
+}
+Image& Image::shade_v() {
+    double gaussian_blur[] = {1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0};
+    double scharr_x[] = {47, 0, -47, 162, 0, -162, 47, 0, -47};
+    grayscale_avg();
+    convolve_clamp_to_border(0, 3, 3, gaussian_blur, 1, 1);
+    convolve_clamp_to_border(0, 3, 3, scharr_x, 1, 1, true);
+    if (channels >= 3) {
+        for (int i = 0; i < size; i += channels) {
+            data[i + 1] = data[i + 2] = data[i];
+        }
+    }
+    return *this;
+}
+Image& Image::shade() {
+
+    grayscale_avg();
+    Image itmd_h(w, h, 1), itmd_v(w, h, 1);
+    for (uint64_t k = 0; k < w * h; k++) {
+        itmd_h.data[k] = data[k * channels];
+        itmd_v.data[k] = data[k * channels];
+    }
+    itmd_h.shade_h();
+    itmd_v.shade_v();
+    double h, v;
+    for (uint64_t i = 0; i < size; i += channels) {
+        h = itmd_h.data[i / channels];
+        v = itmd_v.data[i / channels];
+        data[i] = (uint8_t)BYTE_BOUND(sqrt(h * h + v * v));
+        if (channels >= 3) {
+            data[i + 1] = data[i + 2] = data[i];
+        }
+    }
+    return *this;
+}
+Image& Image::edge(double detail, bool gradient) {
+
+    return *this; 
 }
