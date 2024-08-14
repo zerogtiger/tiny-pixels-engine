@@ -175,5 +175,6 @@ Font object from the `schrift` library.
 ### Image (`Image.h`)
 
 
+
 ### Interpolation (`Interpolation.h`)
 

@@ -1398,7 +1398,7 @@ Image& Image::translate(int x, int y, Color fill) {
     return *this;
 }
 
-std::vector<Image*> Image::seperate_channels() {
+std::vector<Image*> Image::separate_channels() {
     std::vector<Image*> v;
     for (int8_t cd = 0; cd < channels; cd++) {
         Image* sep_chn = new Image(w, h, 1);

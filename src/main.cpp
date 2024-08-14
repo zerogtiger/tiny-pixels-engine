@@ -163,14 +163,14 @@ void test1() {
     // test.write("flipped_x.png");
 
     // embossing
-    double ridge[] = {0, -1, 0, -1, 4, -1, 0, -1, 0};
-    double edge[] = {-1, -1, -1, -1, 8, -1, -1, -1, -1};
-    double sharpen[] = {0, -1, 0, -1, 5, -1, 0, -1, 0};
-    double emboss[] = {-2 / 3.0, -1 / 3.0, 0, -1 / 3.0, 1 / 3.0, 1 / 3.0, 0, 1 / 3.0, 2 / 3.0};
-    double g_blur[] = {1, 4, 6, 4, 1, 4, 16, 24, 16, 4, 6, 24, 36, 24, 6, 4, 16, 24, 16, 4, 1, 4, 6, 4, 1};
-    double unsharp[] = {1, 4, 6, 4, 1, 4, 16, 24, 16, 4, 6, 24, -476, 24, 6, 4, 16, 24, 16, 4, 1, 4, 6, 4, 1};
-    matrix_scalar(g_blur, 25, 256);
-    matrix_scalar(unsharp, 25, -256.0);
+    // double ridge[] = {0, -1, 0, -1, 4, -1, 0, -1, 0};
+    // double edge[] = {-1, -1, -1, -1, 8, -1, -1, -1, -1};
+    // double sharpen[] = {0, -1, 0, -1, 5, -1, 0, -1, 0};
+    // double emboss[] = {-2 / 3.0, -1 / 3.0, 0, -1 / 3.0, 1 / 3.0, 1 / 3.0, 0, 1 / 3.0, 2 / 3.0};
+    // double g_blur[] = {1, 4, 6, 4, 1, 4, 16, 24, 16, 4, 6, 24, 36, 24, 6, 4, 16, 24, 16, 4, 1, 4, 6, 4, 1};
+    // double unsharp[] = {1, 4, 6, 4, 1, 4, 16, 24, 16, 4, 6, 24, -476, 24, 6, 4, 16, 24, 16, 4, 1, 4, 6, 4, 1};
+    // matrix_scalar(g_blur, 25, 256);
+    // matrix_scalar(unsharp, 25, -256.0);
     // double emboss[] = {-2 / 3.0, -1 / 3.0, 0, -1 / 3.0, 1 / 3.0, 1 / 3.0, 0, 1 / 3.0, 2 / 3.0};
     // double gaussian_blur[] = {
     //     1/16.0, 2/16.0, 1/16.0,
@@ -241,15 +241,174 @@ void test1() {
     // blank.write("blank.jpg");
 }
 
+void demo() {
+    // greyscale
+    Image demo("demo/demo.jpeg");
+    Image demo2("demo/demo_2.jpeg");
+    Image demo3("demo/demo_3.png");
+
+    Image greyscale_avg(demo);
+    greyscale_avg.grayscale_avg();
+    greyscale_avg.write("demo/greyscale_avg.png");
+
+    Image greyscale_lum(demo);
+    greyscale_lum.grayscale_lum();
+    greyscale_lum.write("demo/greyscale_lum.png");
+
+    Image color_mask(demo);
+    color_mask.color_mask(0.1, 1, 0.2);
+    color_mask.write("demo/color_mask.png");
+
+    Image diffmap(demo);
+    diffmap.diffmap(demo2);
+    diffmap.write("demo/diffmap.png");
+
+    Image diffmap_scale(demo);
+    diffmap_scale.diffmap_scale(demo2);
+    diffmap_scale.write("demo/diffmap_scale.png");
+
+    Image convolve(demo);
+    double scharr_x[] = {47, 0, -47, 162, 0, -162, 47, 0, -47};
+    convolve.convolve_clamp_to_border(0, 3, 3, scharr_x, 1, 1, true);
+    convolve.write("demo/convolve.png");
+
+    Image flip_x(demo);
+    Image flip_y(demo);
+    flip_x.flip_x();
+    flip_y.flip_y();
+    flip_x.write("demo/flip_x.png");
+    flip_y.write("demo/flip_y.png");
+
+    Image overlay(demo);
+    overlay.overlay(demo3, 100, 100);
+    overlay.write("demo/overlay.png");
+
+    Image overlay_text(demo);
+    Font iosevka("Iosevka Term Nerd Font Complete.ttf", 100);
+    overlay_text.overlay_text("Some Text  ", iosevka, 100, 100, 100, 100, 0, 100);
+    overlay_text.write("demo/overlay_text.png");
+
+    Image crop(demo);
+    crop.crop(100, 100, 200, 200);
+    crop.write("demo/crop.png");
+
+    Image brightness(demo);
+    brightness.brightness(0, 80);
+    brightness.brightness(1, 80);
+    brightness.brightness(2, 80);
+    brightness.write("demo/brightness.png");
+
+    Image contrast(demo);
+    contrast.contrast(0, 80);
+    contrast.contrast(1, 80);
+    contrast.contrast(2, 80);
+    contrast.write("demo/contrast.png");
+
+    Image saturation(demo);
+    saturation.saturation(0, 0.5);
+    saturation.saturation(1, 0.5);
+    saturation.saturation(2, 0.5);
+    saturation.write("demo/saturation.png");
+
+    Image exposure(demo);
+    exposure.exposure(1);
+    exposure.write("demo/exposure.png");
+
+    Image shade_h(demo);
+    Image shade_v(demo);
+    Image shade(demo);
+    shade_h.shade_h();
+    shade_v.shade_v();
+    shade.shade();
+    shade_h.write("demo/shade_h.png");
+    shade_v.write("demo/shade_v.png");
+    shade.write("demo/shade.png");
+
+    Image edge(demo);
+    edge.edge(true);
+    edge.write("demo/edge.png");
+
+    Image f_scale(demo);
+    f_scale.f_scale(400, 400, false, TwoDimInterp::Bilinear);
+    f_scale.write("demo/f_scale.png");
+
+    Image translate(demo);
+    translate.translate(100, 100);
+    translate.write("demo/translate.png");
+
+    Image rotate(demo);
+    rotate.rotate(60);
+    rotate.write("demo/rotate.png");
+
+    Image invert_color(demo);
+    invert_color.invert_color(0);
+    invert_color.invert_color(1);
+    invert_color.invert_color(2);
+    invert_color.write("demo/invert_color.png");
+
+    Image gamma(demo);
+    gamma.gamma(0, 1.3);
+    gamma.gamma(1, 1.3);
+    gamma.gamma(2, 1.3);
+    gamma.write("demo/gamma.png");
+
+    Image color_reduce(demo);
+    color_reduce.color_reduce(ColorDepth::Bit_3, true);
+    color_reduce.write("demo/color_reduce.png");
+
+    Image color_ramp(demo);
+    std::vector<std::pair<double, Color>> points{{0.0, Color(0.0, 100.0, 100.0)},  {0.2, Color(100.0, 0.0, 100.0)},
+                                                 {0.4, Color(100.0, 200.0, 10.0)}, {0.8, Color(50, 50, 50)},
+                                                 {0.9, Color(0, 255, 255)},        {1.0, Color(100, 255, 255)}};
+    Image preview_color_ramp = color_ramp.preview_color_ramp(points);
+    preview_color_ramp.write("demo/preview_color_ramp.png");
+    color_ramp.color_ramp(points, OneDimInterp::BSpline);
+    color_ramp.write("demo/color_ramp.png");
+
+    Image separate_channels(demo);
+    std::vector<Image*> v = separate_channels.separate_channels();
+    for (int i = 0; i < v.size(); i++) {
+        v[i]->write(("demo/" + std::to_string(i) + "_separate.png").c_str());
+    }
+    v[0]->f_scale(v[0]->w / 2, v[0]->h);
+
+    Image combine_channels(demo);
+    combine_channels.combine_channels(v);
+    combine_channels.write("demo/combined.png");
+
+    Image set_alpha(demo);
+    std::vector<std::pair<double, Color>> points2{
+        {0.2, Color(0, 0, 0)}, {0.4, Color(255, 255, 255)}, {0.8, Color(50, 50, 50)}};
+    Image alpha_map = set_alpha.preview_color_ramp(points2);
+    set_alpha.set_alpha(color_ramp, true);
+    set_alpha.write("demo/set_alpha.png");
+
+    Image color_balance(demo);
+    color_balance.color_balance(Color(0.3 * 255, 0.3 * 2552, 0.2 * 255), Color(0.430 * 255, 0.18 * 255, 0.19 * 255),
+                                Color(255, 255, 255));
+    color_balance.write("demo/color_balance.png");
+    
+    Image histogram = demo.histogram();
+    histogram.write("demo/histogram.png");
+
+    Image HSV(demo);
+    HSV.HSV(90, 0.4, -0.4);
+    HSV.write("demo/HSV.png");
+
+    Image false_color = demo.false_color();
+    false_color.write("demo/false_color.png");
+}
+
 int main(int argc, char** argv) {
-    Image colorful("images/colorful.jpg");
-    Adjustment A = Adjustment::create_adj_lgg(0, 1, 1.5);
-    colorful.tone_correct(100, 200, A, A, A);
+    demo();
+    // Image colorful("images/colorful.jpg");
+    // Adjustment A = Adjustment::create_adj_lgg(0, 1, 1.5);
+    // colorful.tone_correct(100, 200, A, A, A);
     // colorful.HSV(0, 1, 0);
     // colorful.contrast(0, 150);
     // colorful.contrast(1, 150);
     // colorful.contrast(2, 150);
-    colorful.write("adj.png");
+    // colorful.write("adj.png");
     // Image colorful("images/colorful.jpg");
     // Image *pn[6];
     // double freq = 1, amp = 1;
@@ -270,7 +429,6 @@ int main(int argc, char** argv) {
     //     }
     // }
     // colorful.write("pn_octave.png");
-        
 
     // Image p_noise_1 = colorful.perlin_noise(0, 255, 400, 1, 0.5, 0);
     // Image p_noise_2 = colorful.perlin_noise(0, 255, 400, 2, 0.25, 0);
