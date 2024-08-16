@@ -1,4 +1,5 @@
 build/
 images/
+*.svg
 .DS_Store
 ImageProcessing
