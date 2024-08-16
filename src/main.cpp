@@ -482,7 +482,14 @@ void demo() {
 }
 
 int main(int argc, char** argv) {
+
     demo();
+
+    // Image saturation("demo/original/demo.jpeg");
+    // saturation.saturation(-1, 0.5);
+    // saturation.saturation(1, 0.5);
+    // saturation.saturation(2, 0.5);
+    // saturation.write("demo/saturation.png");
     // Image tone_correct("demo/original/demo.jpeg");
     // Adjustment s = Adjustment::create_adj_bc(40, 40);
     // Adjustment h = Adjustment::create_adj_lgg(0.0, 1.0, 1.0);

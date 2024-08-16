@@ -953,14 +953,9 @@ Image& Image::saturation(int channel, double saturation_delta) {
     Color clr;
     for (int r = 0; r < h; r++) {
         for (int c = 0; c < w; c++) {
-            if (channel < 0) {
-                clr.r = get(r, c, 0);
-                clr.g = get(r, c, 1);
-                clr.b = get(r, c, 2);
-            }
-            else {
-                clr.r = get(r, c, channel);
-            }
+            clr.r = get(r, c, 0);
+            clr.g = get(r, c, 1);
+            clr.b = get(r, c, 2);
             clr.to_hsv();
             clr.g = std::clamp(clr.g + saturation_delta, 0.0, 1.0);
             clr.hsv_to_rgb(clr.r, clr.g, clr.b);
@@ -970,7 +965,7 @@ Image& Image::saturation(int channel, double saturation_delta) {
                 set(r, c, 2, clr.b);
             }
             else {
-                set(r, c, channel, clr.r);
+                set(r, c, channel, clr.get(channel));
             }
         }
     }

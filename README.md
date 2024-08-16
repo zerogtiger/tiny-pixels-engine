@@ -6,9 +6,9 @@ A C++ graphics compositing library.
 
 See `docs.md` for details.
 
-## What Tiny-Pixels can do for you
+## What Tiny-Pixels can do
 
-Examples coming soon.
+![Demo](demo/original/compiled.png)
 
 ## To-do
 - Color
