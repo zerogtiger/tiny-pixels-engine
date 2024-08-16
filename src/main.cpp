@@ -258,12 +258,12 @@ void demo() {
     color_mask.color_mask(0.6, 1, 0.2);
     color_mask.write("demo/color_mask.png");
 
-    Image diffmap(demo);
-    diffmap.diffmap(demo2);
+    Image diffmap(greyscale_lum);
+    diffmap.diffmap(greyscale_avg);
     diffmap.write("demo/diffmap.png");
 
-    Image diffmap_scale(demo);
-    diffmap_scale.diffmap_scale(demo2);
+    Image diffmap_scale(greyscale_lum);
+    diffmap.diffmap_scale(greyscale_avg);
     diffmap_scale.write("demo/diffmap_scale.png");
 
     Image convolve(demo);
@@ -485,6 +485,29 @@ int main(int argc, char** argv) {
 
     demo();
 
+    // Image demo("demo/original/demo.jpeg");
+    // Image demo2("demo/original/demo_2.jpeg");
+    // Image demo3("demo/original/demo_3.png");
+    //
+    // Image greyscale_avg(demo);
+    // greyscale_avg.grayscale_avg();
+    // // greyscale_avg.write("demo/greyscale_avg.png");
+    //
+    // Image greyscale_lum(demo);
+    // greyscale_lum.grayscale_lum();
+    // // greyscale_lum.write("demo/greyscale_lum.png");
+    //
+    // Image color_mask(demo);
+    // color_mask.color_mask(0.6, 1, 0.2);
+    // // color_mask.write("demo/color_mask.png");
+    //
+    // Image diffmap(demo);
+    // diffmap.diffmap(greyscale_avg);
+    // diffmap.write("demo/diffmap.png");
+    //
+    // Image diffmap_scale(greyscale_lum);
+    // diffmap_scale.diffmap_scale(greyscale_avg);
+    // diffmap_scale.write("demo/diffmap_scale.png");
     // Image saturation("demo/original/demo.jpeg");
     // saturation.saturation(-1, 0.5);
     // saturation.saturation(1, 0.5);
