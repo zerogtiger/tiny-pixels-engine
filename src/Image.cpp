@@ -953,21 +953,25 @@ Image& Image::saturation(int channel, double saturation_delta) {
     Color clr;
     for (int r = 0; r < h; r++) {
         for (int c = 0; c < w; c++) {
-            clr.r = get(r, c, 0);
             if (channel < 0) {
+                clr.r = get(r, c, 0);
                 clr.g = get(r, c, 1);
                 clr.b = get(r, c, 2);
             }
             else {
-                clr.g = 0;
-                clr.b = 0;
+                clr.r = get(r, c, channel);
             }
             clr.to_hsv();
             clr.g = std::clamp(clr.g + saturation_delta, 0.0, 1.0);
             clr.hsv_to_rgb(clr.r, clr.g, clr.b);
-            set(r, c, 0, clr.r);
-            set(r, c, 1, clr.g);
-            set(r, c, 2, clr.b);
+            if (channel < 0) {
+                set(r, c, 0, clr.r);
+                set(r, c, 1, clr.g);
+                set(r, c, 2, clr.b);
+            }
+            else {
+                set(r, c, channel, clr.r);
+            }
         }
     }
     return *this;
@@ -1368,7 +1372,6 @@ Image& Image::preview_color_ramp(std::vector<std::pair<double, Color>> points, O
             }
         }
     }
-    ret->write("images/preview_start.png");
     ret->color_ramp(points, method);
     return *ret;
 }
@@ -1888,7 +1891,7 @@ Image& Image::RGB_curves(OneDimInterp method, std::vector<std::pair<double, doub
 }
 
 // Notes: control points is pairs of {[0, 1], [0, 1]}
-Image* Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<double, double>> control_c,
+Image& Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<double, double>> control_c,
                                  std::vector<std::pair<double, double>> control_r,
                                  std::vector<std::pair<double, double>> control_g,
                                  std::vector<std::pair<double, double>> control_b) {
@@ -1985,7 +1988,7 @@ Image* Image::preview_RGB_curves(OneDimInterp method, std::vector<std::pair<doub
     // ret[2] = &grn;
     // ret[3] = &blu;
 
-    return ret;
+    return *ret;
 }
 // Notes: controls should have elements of the form {[0, 360), [-1, 1]}
 Image& Image::hue_correct(std::vector<std::pair<double, double>> control_h,
@@ -2048,7 +2051,7 @@ Image& Image::hue_correct(std::vector<std::pair<double, double>> control_h,
 }
 
 // Notes: controls should have elements of the form {[0, 360), [-1, 1]}
-Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control_h,
+Image& Image::preview_hue_correct(std::vector<std::pair<double, double>> control_h,
                                   std::vector<std::pair<double, double>> control_s,
                                   std::vector<std::pair<double, double>> control_v) {
     Interpolation I;
@@ -2138,7 +2141,7 @@ Image* Image::preview_hue_correct(std::vector<std::pair<double, double>> control
         ret.set_offset(360 - (res[w] * (double) 180 + 180), w, 735, 5, 2,
                        255 - ret.get_offset(36 - -(res[w] * (double) 180 + 180), w, 735, 5, 2));
     }
-    return &ret;
+    return ret;
 }
 Image& Image::blur(Blur method, int radius_x, int radius_y) {
     std::vector<double> ker_vec;

@@ -125,7 +125,8 @@ struct Image {
 
     Image& f_scale(uint32_t new_w, uint32_t new_h, bool linked = false, TwoDimInterp method = TwoDimInterp::Nearest);
     Image& translate(int x, int y, Color fill = Color(0, 0, 0, 255));
-    Image& rotate(double degrees);
+    Image& rotate(double origin_x, double origin_y, double angle, TwoDimInterp method = TwoDimInterp::Bilinear,
+                  Color fill = Color(0, 0, 0));
 
     Image& invert_color(uint8_t channel);
     Image& gamma(uint8_t channel, double gamma_delta);
@@ -154,8 +155,6 @@ struct Image {
     Image& tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone,
                         Adjustment highlight);
 
-    Image& rotate(double origin_x, double origin_y, double angle, TwoDimInterp method = TwoDimInterp::Bilinear,
-                  Color fill = Color(0, 0, 0));
 
     Image& RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
                       std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
@@ -163,7 +162,7 @@ struct Image {
                       std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
                       std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
 
-    Image* preview_RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
+    Image& preview_RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
                               std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
                               std::vector<std::pair<double, double>> control_r = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
                               std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
@@ -173,7 +172,7 @@ struct Image {
                        std::vector<std::pair<double, double>> control_s = {{179, 0}, {180, 0}, {181, 0}},
                        std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
 
-    Image* preview_hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 0}, {181, 0}},
+    Image& preview_hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 0}, {181, 0}},
                                std::vector<std::pair<double, double>> control_s = {{179, 0}, {180, 0}, {181, 0}},
                                std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
 

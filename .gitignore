@@ -1,5 +1,4 @@
 build/
-*.png
-*.jpg
+images/
 .DS_Store
 ImageProcessing
