@@ -59,7 +59,7 @@ struct Image {
     Image& decodemessage(char* buffer, size_t* messageLength);
 
     Image& diffmap(Image& img);
-    Image& diffmap_scale(Image& img, uint8_t scl = 0);
+    Image& diffmap_scale(Image& img, uint8_t scl = 1);
 
     Image& std_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr,
                                       uint32_t cc, bool normalize = false);
