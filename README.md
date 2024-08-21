@@ -2,9 +2,7 @@
 
 A C++ graphics compositing library.
 
-## Documentation
-
-See `docs.md` for details.
+## See [docs.md](docs.md) for documentation
 
 ## What Tiny-Pixels can do
 
