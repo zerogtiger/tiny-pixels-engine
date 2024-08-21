@@ -415,6 +415,11 @@ Font object from the `schrift` library.
 
     Available color depths are `Bit_3`, `Bit_8`, and `Bit_16`.
 
+    The following comparison illustrates the difference between reducing to a color depth of 3 with and without error diffusion: left shows the result with error diffusion, and right shows the result without.
+
+    ![color reduction with error reduction](docs/color_reduce_with_diff.png)
+    ![color reduction without error reduction](docs/color_reduce_without_diff.png)
+
 - `Image& color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method = OneDimInterp::Linear);`
 
     Applies a color gradient transformation to the average grayscale values of the calling `Image`. The gradient is defined by the control `points` and interpolated via the specified `OneDimInterp method`.
@@ -489,8 +494,8 @@ Font object from the `schrift` library.
 
     The following is an illustrative sample of false color corresponding to each luminance level. The base color ramp below is provided as a reference for luminance. 
 
-    ![false color levels](demo/false_color_preview.png)<br/>
-    ![base color ramp](demo/base_color_ramp.png)
+    ![false color levels](docs/false_color_preview.png)<br/>
+    ![base color ramp](docs/base_color_ramp.png)
 
 - `Image& tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone, Adjustment highlight);`
 
@@ -606,4 +611,50 @@ Font object from the `schrift` library.
     The frequency `freq` determines the number of subdivisions used in the noise calculation, while the amplitude `amp` controls the saturation level within the specified `[min, max]` range.
 
 ### Interpolation (`Interpolation.h`)
+
+#### Member methods
+
+- `static Color bilinear(Image& image, double r, double c, bool interp_edge_with_fill, Color fill = Color(0, 0, 0));`
+
+    Interpolates a pixel value at row `r`, column `c` of `image` using the bilinear interpolation method and returns the interpolated value. 
+
+    To interpolate out of bounds values with the provided `fill` color, set the `interp_edge_with_fill` flag to `true`. Otherwise, out of bounds values will be clamped to the bounds of the `image`. 
+
+- `static std::vector<double> constant(std::vector<std::pair<double, double>> points, std::vector<double> interp_points);`
+    
+    Interpolates the points in `interp_points` using the list of `points` via the constant one-dimensional interpolation method and returns the corresponding interpolated values.
+
+- `static std::vector<double> linear(std::vector<std::pair<double, double>> points, std::vector<double> interp_points);`
+    
+    Interpolates the points in `interp_points` using the list of `points` via the linear one-dimensional interpolation method and returns the corresponding interpolated values.
+
+- `static std::vector<double> single_cubic_bezier(std::vector<std::pair<double, double>> control_points, std::vector<double> interp_points, double error_bound = 0.0001);`
+
+    Interpolates the points in `interp_points` using the list of `control_points` (length >= 4) by constructing a single cubic Bézier curve. Returns the interpolated values corresponding to each point in `interp_points`. 
+
+    Since the interpolation uses x coordinates while a Bézier curve uses the position along the curve, the function uses binary search to locate the corresponding x value with an acceptable `error_bound`.
+
+- `static std::vector<double> cubic_bezier(std::vector<std::pair<double, double>> handles, std::vector<double> interp_points, double error_bound = 0.0001);`
+
+    Interpolates the points in `interp_points` using the list of `control_points` ($length \equiv 1 \mod 3$) by constructing a cubic Bézier spline. Returns the interpolated values corresponding to each point in `interp_points`.
+
+    The `error_bound` parameter functions identically to that in `single_cubic_bezier`.
+
+- `static std::vector<double> b_spline(std::vector<std::pair<double, double>> control_points, std::vector<double> interp_points, double error_bound = 0.0001);`
+
+    Interpolates the points in `interp_points` using the list of `control_points` ($length \equiv 1 \mod 3$) by constructing a B-Spline (Basis Spline). Returns the interpolated values corresponding to each point in `interp_points`.
+
+    This B-Splines implementation is based on Bézier splines, thus the `error_bound` parameter functions identically to that in `single_cubic_bezier`. 
+
+
+    
+
+
+    
+
+
+
+    
+
+
 

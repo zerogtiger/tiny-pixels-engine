@@ -485,6 +485,11 @@ int main(int argc, char** argv) {
 
     // demo();
 
+    // Image color_reduce("demo/original/demo.jpeg");
+    // color_reduce.color_reduce(ColorDepth::Bit_3, true);
+    // color_reduce.crop(700, 500, 100, 100);
+    // color_reduce.write("color_reduce_with.png");
+
     // Image* ret = new Image(256, 20, 3);
     // for (int i = 0; i < ret->h; i++) {
     //     for (int j = 0; j < ret->w; j++) {
