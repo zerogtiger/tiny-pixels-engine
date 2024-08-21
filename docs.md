@@ -264,7 +264,7 @@ Font object from the `schrift` library.
     
     Similar to `diffmap`, except will scale the final output such that the data fully saturates the $[0, 255]$ range. 
 
-    In other words, it will scale the pixels by $\frac{255}{\max(1, \;scl,\; largest)}$, where `largest` is the largest pixel value in the original diff map. 
+    In other words, it will scale the pixels by $\frac{255}{\max(1, scl, largest)}$, where `largest` is the largest pixel value in the original diff map. 
 
 - `Image& std_convolve_clamp_to_zero(uint8_t channel, uint32_t ker_w, uint32_t ker_h, double ker[], uint32_t cr, uint32_t cc, bool normalize = false);`
 
@@ -529,7 +529,7 @@ Font object from the `schrift` library.
 
     The following is an example of an RGB curves preview from demo:
 
-    ![RGB curves](demo/preview_rgb_curves.png)
+    ![RGB curves](demo/preview_RGB_curves.png)
 
 - `hue_correct`
 
