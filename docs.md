@@ -2,10 +2,10 @@
 
 ## Classes and description
 
-### Adjustment (`Adjustment.h`)
+## Adjustment (`Adjustment.h`)
 Stores the applicable adjustments to a certain pixel/image.
 
-#### Member variables
+### Member variables
 The expression after the colon indicates the recommended range. Note that there are limited support for values lying outside the range and should be used with caution. 
 
 - `double brightness`: $[-150, 150]$
@@ -19,7 +19,7 @@ The expression after the colon indicates the recommended range. Note that there 
 
 `gamma` and `gain` have default value 1 and all other members default to 0.
 
-#### Member methods
+### Member methods
 - Constructors
 
     - `Adjustment();` (Default constructor)
@@ -41,10 +41,10 @@ The expression after the colon indicates the recommended range. Note that there 
     
     Returns an initialized `Adjustment` object with the indicated lift, gamma, and gain values; and default values for all other data members. 
 
-### Color (`Color.h`)
+## Color (`Color.h`)
 Stores data for a particular color in RGBA format. 
 
-#### Member variables
+### Member variables
 
 Representing the RGBA channels of a certain color:
 
@@ -55,7 +55,7 @@ Representing the RGBA channels of a certain color:
 
 Note that it may also represent color in HSV where `r`, `g`, `b` corresponds to hue, saturation, and value, with recommended range $[0, 360)$, $[0, 1]$, and $[0, 1]$ respectively. 
 
-#### Member methods
+### Member methods
 
 - Constructors
 
@@ -152,15 +152,15 @@ Note that it may also represent color in HSV where `r`, `g`, `b` corresponds to 
 
     Applies the provided adjustment to the calling color accounting for the provided factor, with 1 being fully applied, and 0 being none applied. 
 
-### Font (`Font.h`)
+## Font (`Font.h`)
 
-#### Member variables
+### Member variables
 
 Font object from the `schrift` library.
 
 - `SFT sft = {NULL, 12, 12, 0, 0, SFT_DOWNWARD_Y | SFT_RENDER_IMAGE};`
 
-#### Member functions
+### Member functions
 
 - Constructor
     
@@ -172,9 +172,9 @@ Font object from the `schrift` library.
 
     Sets the font size of the calling object to the provided size.
 
-### Image (`Image.h`)
+## Image (`Image.h`)
 
-#### Member variables
+### Member variables
 
 - `int w`: width of the image, in pixels
 - `int h`: height of the image, in pixels
@@ -182,7 +182,7 @@ Font object from the `schrift` library.
 - `size_t size`: size of the image, in bytes, calculated by $w \cdot h \cdot channels$.
 - `uint8_t* data`: data of image pointing to an array of size `size`. The `n`th channel byte value for the `r`th row and `c`th column is stored at `data[(r * width + c) * channels + n]`. Rows and columns are 0-indexed and starts from the top left corner of the image. 
 
-#### Member methods
+### Member methods
 
 - Constructors
 
@@ -610,9 +610,9 @@ Font object from the `schrift` library.
 
     The frequency `freq` determines the number of subdivisions used in the noise calculation, while the amplitude `amp` controls the saturation level within the specified `[min, max]` range.
 
-### Interpolation (`Interpolation.h`)
+## Interpolation (`Interpolation.h`)
 
-#### Member methods
+### Member methods
 
 - `static Color bilinear(Image& image, double r, double c, bool interp_edge_with_fill, Color fill = Color(0, 0, 0));`
 
