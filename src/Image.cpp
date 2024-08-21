@@ -1113,7 +1113,6 @@ Image& Image::edge(bool gradient, double detail_threshold) {
 }
 
 Image& Image::f_scale(uint32_t new_w, uint32_t new_h, bool linked, TwoDimInterp method) {
-    printf("Channels: %d", channels);
     if (linked) {
         new_h = (uint32_t) round(((double) h) / w * new_w);
     }

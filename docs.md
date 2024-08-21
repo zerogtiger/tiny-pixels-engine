@@ -339,5 +339,83 @@ Font object from the `schrift` library.
     The recommended range for `contrast_delta` is $[-150, 150]$.
 
 
+- `Image& saturation(int channel, double saturation_delta);`
+
+    Adjusts the saturation of the specified `channel` of the image by the specified `saturation_delta`. To adjust the saturation at once, call the function with `channel = -1`.
+
+    The recommended range for `saturation_delta` is $[-1, 1]$.
+
+- `Image& exposure(double exposure);`
+
+    Changes the exposure of the image by `exposure` EVs.
+
+- `Image& shade_h();`
+    
+    Produces the normalized y-gradient from the Sobel–Feldman operator. 
+
+    In other words, shades the image like an embosing with the horizontal edges enhanced. 
+
+- `Image& shade_v();`
+    
+    Produces the normalized x-gradient from the [Sobel–Feldman operator](https://en.wikipedia.org/wiki/Sobel_operator). 
+
+    In other words, shades the image like an embosing with the vertical edges enhanced. 
+
+- `Image& shade();`
+
+    Produces the normalized gradient from the [Sobel–Feldman operator](https://en.wikipedia.org/wiki/Sobel_operator).
+
+    In other words, shades the image like an embosing.
+
+- `Image& edge(bool gradient = false, double detail_threshold = 0.09);`
+    
+    Applies the [Sobel–Feldman operator](https://en.wikipedia.org/wiki/Sobel_operator) to the image with normalized gradient magnitudes. 
+
+    In other words, detects the edges in the image. 
+
+    The `gradient` flag indicates whether the edges should be shown with their direction gradients. 
+
+    The `detail_threshold` value indicates the degree of small details that are ignored. 
+
+- `Image& f_scale(uint32_t new_w, uint32_t new_h, bool linked = false, TwoDimInterp method = TwoDimInterp::Nearest);`
+
+    Fractionally scales the image to width `new_w`, height `new_h` using the interpretation method `method`. 
+
+    Currently, the interpolation methods supported are `TwoDimInterp::Nearest` and `TwoDimInterp::Bilinear`.
+
+    To proportionally scale the image to a width of `new_w`, toggle the `linked` flag to `true`, which will result in `new_h` being ignored. 
+
+- `Image& translate(int x, int y, Color fill = Color(0, 0, 0, 255));`
+
+    Translates the image horizontally by `x` and vertically by `y`, where rightwards and downwards are defined to be the positive direction.
+
+    The blank spaces will be filled with the color specified by `fill`.
+
+- `Image& rotate(double origin_x, double origin_y, double angle, TwoDimInterp method = TwoDimInterp::Bilinear, Color fill = Color(0, 0, 0));`
+
+    Rotates the image `angle` degrees clockwise about $(origin\_x,\; origin\_y)$ determined from the top left corner of the image.
+
+    Pixels in the new image will be interpolated by the method specified by `method`. Currently, the supported methods are `TwoDimInterp::Nearest` and `TwoDimInterp::Bilinear`.
+
+    The blank spaces from the rotation will be filled with the color specified by `fill`.
+
+- `Image& invert_color(uint8_t channel);`
+
+    Inverts the color of the specified `channel` in the calling `Image`.
+
+- `Image& gamma(uint8_t channel, double gamma_delta);`
+
+    Adjusts the specified `channel` of the image by applying the provided `gamma_delta`.
+
+    Recommended range for `gamma_delta` is $(0, 10]$, where a value of 1 will result in the original image. 
+
+- `Image& color_reduce(ColorDepth depth = ColorDepth::Bit_3, bool error_diffusion = true);`
+
+    Reduces the colors of the image to the specified color depth as defined by `depth`, applying the Floyd-Steinberg error diffusion as per the `error_diffusion` flag.
+
+    Available color depths are `Bit_3`, `Bit_8`, and `Bit_16`.
+
+    
+
 ### Interpolation (`Interpolation.h`)
 
