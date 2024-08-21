@@ -415,7 +415,195 @@ Font object from the `schrift` library.
 
     Available color depths are `Bit_3`, `Bit_8`, and `Bit_16`.
 
+- `Image& color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method = OneDimInterp::Linear);`
+
+    Applies a color gradient transformation to the average grayscale values of the calling `Image`. The gradient is defined by the control `points` and interpolated via the specified `OneDimInterp method`.
+
+    Supported `OneDimInterp` methods include `Constant`, `Linear`, `BSpline`, and `Bezier`.
+
+    The following is an example of a color ramp preview from demo:
+
+    ![Color ramp](demo/preview_color_ramp.png)
+
+- `Image& preview_color_ramp(std::vector<std::pair<double, Color>> points, OneDimInterp method = OneDimInterp::Linear) const;`
+
+    Generates a 256 $\times$ 20 preview of the interpolated color ramp defined by the control `points`, interpolated via the specific `OneDimInterp method`. 
     
+    Supported `OneDimInterp` methods follow from the `color_ramp` method.
+
+- `std::vector<Image*> separate_channels();`
+
+    Separates the channels of the calling `Image` object and returns the references in a vector.
+
+- `Image& combine_channels(std::vector<Image*> imgs, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);`
+
+    Combines the provided `imgs` as channels to produce an image of width $\max\{imgs[i].w\}$, height $\max\{imgs[i].h\}$, and replaces the calling `Image` object.
+
+    If the `resize_to_fit` flag is `true`, all smaller images will be resized to have the same width and height as the final output using the interpolation `method` specified. 
+
+    Supported `TwoDimInterp` methods follow from the `f_scale` function.
+
+- `Image& set_alpha(Image& alph, bool resize_to_fit = false, TwoDimInterp method = TwoDimInterp::Bilinear);`
+
+    Sets the `alpha` channel of the calling `Image` to take on the first channel value of the `alph` image. If the two images are not the same size, the alpha channel defaults to 255 (opaque).
+
+    If the `resize_to_fit` flag is `true`, the `alph` image will be resized to have the same width and height as the calling `Image`using the interpolation `method` specified. 
+
+    Supported `TwoDimInterp` methods follow from the `f_scale` function.
+
+- `Image& color_balance(Color lift, Color gamma, Color gain);`
+    
+    Adjusts the color balance of the calling `Image` by `lift`, `gain`, and `gamma`.
+
+- `Image& histogram(bool inc_lum = true, int channel = -1, Color fill = Color(125, 125, 125));`
+
+    Produces the histogram of the calling `Image`.
+
+    The `inc_lum` flag indicates whether to include the luminosity levels.
+
+    A non-negative value for `channel` will limit the histogram for that specific channel and fill the bars with `fill`. Otherwise, the histogram will display the red, green, and blue channels. 
+
+- `Image& histogram_lum(Color fill = Color(125, 125, 125));` 
+
+    Produces the histogram for the luminosity grayscale values of the calling `Image`.
+
+- `Image& histogram_avg(Color fill = Color(125, 125, 125));`
+
+    Produces the histogram for the average grayscale values of the calling `Image`.
+
+- `Image& HSV(double hue_delta, double saturation_delta, double value_delta);`
+
+    Adjusts the hue, saturation, and values for the calling `Image`.
+
+    Recommended range for each parameter is listed below
+    - `hue_delta`: $[-360, 360]$
+    - `saturation_delta`: $[-1, 1]$
+    - `value_delta`: $[-1, 1]$
+
+
+- `Image& false_color(bool overwrite = false);`
+
+    Produces the false color image based on the luminance values for the calling `Image` object. 
+
+    `overwrite` indicates whether to overwrite the calling image with its false color.
+
+    The following is an illustrative sample of false color corresponding to each luminance level. The base color ramp below is provided as a reference for luminance. 
+
+    ![false color levels](demo/false_color_preview.png)<br/>
+    ![base color ramp](demo/base_color_ramp.png)
+
+- `Image& tone_correct(uint8_t midtones_start, uint8_t midtones_end, Adjustment shadow, Adjustment midtone, Adjustment highlight);`
+
+    Adjusts the image based on the specified `shadow`, `midtones`, and `highlight` adjustments delimited by `midtones_start` and `midtones_end`.
+
+- `RGB_curves`
+
+    Full header is shown below:
+    ```cpp
+    Image& RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
+                        std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                        std::vector<std::pair<double, double>> control_r = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                        std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                        std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
+    ```
+    
+    Adjusts the image based on the control parameters. 
+
+    `control_c` adjusts all color channels at once, while `control_r`, `control_g`, `control_b` adjusts each color channel individually. 
+
+    Values in the controls should be of pairs in the form $\{x, v\}$, where $x \in [0, 1]$, indicating the x-position of the control point; $v \in [0, 1]$, indicating the value of the point. 
+
+    The curve will be interpolated by `method`, which supports `Bezier` and `BSpline`.
+
+- `preview_RGB_Curves`
+
+    Full header is shown below:
+    ```cpp
+    Image& preview_RGB_curves(OneDimInterp method = OneDimInterp::Bezier,
+                              std::vector<std::pair<double, double>> control_c = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                              std::vector<std::pair<double, double>> control_r = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                              std::vector<std::pair<double, double>> control_g = {{0, 0}, {0, 0}, {1, 1}, {1, 1}},
+                              std::vector<std::pair<double, double>> control_b = {{0, 0}, {0, 0}, {1, 1}, {1, 1}});
+    ```
+    Generates a 527 $\times$ 527 preview of the RGB curves. Parameters follow from `RGB_curves`.
+
+    The following is an example of an RGB curves preview from demo:
+
+    ![RGB curves](demo/preview_rgb_curves.png)
+
+- `hue_correct`
+
+    Full header is shown below:
+    ```cpp
+    Image& hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 0}, {181, 0}},
+                       std::vector<std::pair<double, double>> control_s = {{179, 0}, {180, 0}, {181, 0}},
+                       std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
+    ```
+    Adjusts the hue, saturation, and value based on the controls. Note that the controls curves are interpolated cyclically by `OneDimInterp::Bezier` to result in a smooth adjusted result. 
+
+    The number of points in each control list should be a multiple of 3, where points at indices $i \equiv 1 \mod 3$ are end points, while the rest are handles. 
+    
+- `preview_hue_correct`
+
+    Full header is shown below: 
+    ```cpp
+    Image& preview_hue_correct(std::vector<std::pair<double, double>> control_h = {{179, 0}, {180, 0}, {181, 0}},
+                               std::vector<std::pair<double, double>> control_s = {{179, 0}, {180, 0}, {181, 0}},
+                               std::vector<std::pair<double, double>> control_v = {{179, 0}, {180, 0}, {181, 0}});
+    ```
+    Displays a 730 $\times$ 1100 preview of the adjustments of each control on the image, comprised of three 360 $\times$ 720 sub-images, each displaying one adjustment.
+
+    The following is an example of a hue correct preview from demo:
+
+    ![Hue correct](demo/preview_hue_correct.png)
+
+- `Image& blur(Blur method = Blur::Gaussian, int radius_x = 5, int radius_y = 5);`
+
+    Blurs the image with the specified `radius_x` and `radius_y`, using the specified `method`. 
+
+    Supported methods are `Gaussian` and `Box`.
+
+- `Image& alpha_overlay(Image* fac, int fac_x, int fac_y, Image* other, int other_x, int other_y);`
+    
+    Overlays the `other` image placed at row `other_y`, column `other_x` onto the calling image with an alpha factor determined by the `fac` mask placed at row `fac_y`, column `fac_x`.
+
+- `Image& alpha_overlay(Color color, Image* other, int other_x, int other_y);`
+
+    Similar to the above, except using a single color to define the alpha overlay factor.
+
+- `Image& alpha_overlay(Image* fac, int fac_x, int fac_y, Color other);`
+
+    Similar to the above, except overlaying a color `other` with an alpha factor determined by the `fac` mask. 
+
+- `Image& alpha_overlay(Color color, Color other);`
+
+    Similar to the above, expect overlaying the `other` color with an alpha factor determined by the `color`.
+
+- `Image& vignette(double fact_x = 0, double fact_y = 0);`
+
+    Vignettes the calling `Image` with the amount of horizontal vignetting determined by `fact_x`, and amount of vertical vignetting determined by `fact_y`. 
+
+- `Image& color_matrix(std::vector<std::vector<double>> matrix);`
+
+    Applies the specified color `matrix` to the calling `Image` object. 
+
+- `Image& rect_mask(double start_x, double start_y, double end_x, double end_y, Color fill = Color(255, 255, 255));`
+
+    Generates a rectangular mask that matches the size of the calling `Image`. The rectangle starts and ends at the specified parameters, with a black background and the masked area filled with `fill`
+
+- `Image& ellipse_mask(double center_x, double center_y, double radius_x, double radius_y, Color fill = Color(255, 255, 255));`
+
+    Generates an elliptical mask with the same dimensions as the calling `Image`. The ellipse is centered and sized according to the specified parameters, with a black background and the ellipse filled with `fill`.
+
+- `Image& white_noise(double min = 0.0, double max = 255.0, bool color = true, int seed = 0);`
+
+    Generates white noise with a minimum value of `min` and a maximum value of `max` using the provided `seed`. To create monotone noise, set the `color` flag to `false`.
+
+- `Image& perlin_noise(double min = 0.0, double max = 255.0, int grid_size = 400, double freq = 1, double amp = 1, int seed = 0);`
+
+    Generates Perlin noise with a minimum value of `min`, a maximum value of `max`, and a `grid_size` in pixels, using the provided `seed`.
+
+    The frequency `freq` determines the number of subdivisions used in the noise calculation, while the amplitude `amp` controls the saturation level within the specified `[min, max]` range.
 
 ### Interpolation (`Interpolation.h`)
 

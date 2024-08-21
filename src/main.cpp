@@ -483,7 +483,18 @@ void demo() {
 
 int main(int argc, char** argv) {
 
-    demo();
+    // demo();
+
+    // Image* ret = new Image(256, 20, 3);
+    // for (int i = 0; i < ret->h; i++) {
+    //     for (int j = 0; j < ret->w; j++) {
+    //         for (int cd = 0; cd < 3; cd++) {
+    //             ret->data[(i * ret->w + j) * ret->channels + cd] = j;
+    //         }
+    //     }
+    // }
+    // ret->false_color(true);
+    // ret->write("demo/false_color_preview.png");
 
     // Image demo("demo/original/demo.jpeg");
     // Image demo2("demo/original/demo_2.jpeg");
